@@ -12,8 +12,8 @@ class User(UserMixin, db.Model): # TODO: Add Multipass, Email Confirmation, 2FA
   email = db.Column(db.String(255), unique=True, nullable=False)
   hashed_pass = db.Column(db.String(255), nullable = False)
   date_created = db.Column(db.DateTime, nullable=True, default=func.now())
-  confirmed = db.Column(db.Boolean, default=False)
-  date_confirmed = db.Column(db.DateTime, nullable=True)
+  confirmed = db.Column(db.Boolean, default=False) # Currently unused
+  date_confirmed = db.Column(db.DateTime, nullable=True) # Currently unused
   profile_id = db.Column(db.Integer, db.ForeignKey('profiles.id'))
   tos = db.Column(db.Boolean, default=True)
   logs = db.relationship('Log', backref='user', lazy=True)
@@ -28,7 +28,7 @@ class User(UserMixin, db.Model): # TODO: Add Multipass, Email Confirmation, 2FA
   def check_password(self, password:str) -> bool:
     return check_password_hash(self.hashed_pass, password)  
   
-class Profile(db.Model): # TODO: Add role-based permissions
+class Profile(db.Model):
   __tablename__ = 'profiles'
   id = db.Column(db.Integer, primary_key=True)
   username = db.Column(db.String(64), unique=True, nullable=False)
