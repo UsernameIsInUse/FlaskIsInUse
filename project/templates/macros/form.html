@@ -1,0 +1,72 @@
+{% macro input(name) %}
+{% set field = form[name] %}
+<div class="field">
+  {{ field.label(class="label") }}
+  <div class="control">
+  {% if field.errors %}
+  {{ field(class="input is-danger")}}
+  {% for error in field.errors %}
+    <p class="help is-danger">{{ error }}</p>
+    {% endfor %}
+  {% else %}
+  {{ field(class="input")}}
+  {% endif %}
+  </div>
+</div>
+{% endmacro %}
+
+{% macro password(name) %}
+{% set field = form[name] %}
+<div class="field">
+  {{ field.label(class="label") }}
+  <div class="control">
+  {% if field.errors %}
+  {{ field(class="input is-danger password")}}
+  {% for error in field.errors %}
+    <p class="help is-danger">{{ error }}</p>
+    {% endfor %}
+  {% else %}
+  {{ field(class="input password")}}
+  {% endif %}
+  </div>
+</div>
+{% endmacro %}
+
+{% macro showPassword() %}
+<div class="field">
+  <a id="showpassword" class="credit fit small" onclick="showpasswords()">Show Password</a>
+</div>
+<script>
+  function showpasswords() {
+    var x = document.getElementsByClassName("password");
+    Array.from(x).forEach(function (element) {
+      if (element.type === "password") {
+        element.type = "text";
+        $('#showpassword').addClass('solid')
+      } else {
+        element.type = "password";
+        $('#showpassword').removeClass('solid')
+      };
+    });
+  } ;
+</script>
+{% endmacro %}
+
+{% macro checkbox(name, display) %}
+<div class="field">
+  <div class="control">
+    <label class="checkbox">
+      <input id="{{name}}" name="{{name}}" type="checkbox">
+      {{display}}
+    </label>
+  </div>
+</div>
+{% endmacro %}
+
+{% macro submit(name, display, color) %}
+<div class="field">
+  <div class="control">
+    <input id="{{name}}" name="{{name}}" type="{{name}}" value="{{display}}" class="button is-{{color}}">
+  </div>
+</div>
+{% endmacro %}

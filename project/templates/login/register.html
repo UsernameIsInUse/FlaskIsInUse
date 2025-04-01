@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block pre %}{% endblock %}
+{% block head %}{% endblock %}
+
+{% block title %}Register | {% endblock %}
+
+{% block content %}
+    {% from 'macros/form.html' import input, password, showPassword, checkbox, submit with context %}
+    <section class="section">
+        <div class="container">
+            <h1 class="title is-1">Register an Account</h1>
+            <form action="" method="post" class="block">
+                {{ form.hidden_tag() }}
+
+                {{ input('email') }}
+
+                {{ input('username') }}
+
+                {{ password('password') }}
+
+                {{ password('password2') }}
+
+                {{ showPassword() }}
+
+                <div class="field">
+                  <div class="control">
+                    <label class="checkbox">
+                      <input id="tos" name="tos" type="checkbox" required>
+                      I agree to the <a href='{{url_for("views.tos")}}' target="_blank" style="text-decoration: underline;">terms and conditions</a>
+                    </label>
+                  </div>
+                </div>
+
+                {{ submit('submit', 'Register', 'primary') }}
+
+            </form>
+            <p><a href='{{url_for("views.login")}}' class="quiet">Already have an account? Login instead!</a></p>
+        </div>
+    </section>
+{% endblock %}

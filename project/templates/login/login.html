@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+
+{% block pre %}{% endblock %}
+{% block head %}{% endblock %}
+
+{% block title %}Login | {% endblock %}
+
+{% block content %}
+    {% from 'macros/form.html' import input, password, showPassword, checkbox, submit with context %}
+    <section class="section">
+        <div class="container">
+            <h1 class="title is-1">Login</h1>
+            <form action="" method="post" class="block">
+                {{ form.hidden_tag() }}
+
+                {{ input('email') }}
+
+                {{ password('password') }}
+
+                {{ showPassword() }}
+
+                {{ checkbox('remember_me', "Remember Me") }}
+
+                {{ submit('submit', 'Login', 'primary') }}
+                
+            </form>
+            <p><a href='{{url_for("views.register")}}' class="quiet">Don't have an account? Register instead!</a></p>
+            
+        </div>
+    </section>
+{% endblock %}

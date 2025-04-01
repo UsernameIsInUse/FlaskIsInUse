@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block pre %}{% endblock %}
+{% block head %}{% endblock %}
+
+{% block title %}Profile | {% endblock %}
+
+{% block content %}
+    <section class="section">
+        <div class="container">
+            <h1 class="title is-1">{{current_user.profile.username}}</h1>
+        </div>
+    </section>
+{% endblock %}

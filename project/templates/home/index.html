@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block pre %}{% endblock %}
+{% block head %}{% endblock %}
+
+{% block title %}Home | {% endblock %}
+
+{% block content %}
+    <section class="section">
+        <div class="container">
+            <h1 class="title is-1">Title</h1>
+            <p class="subtitle is-5">Subtitle</p>
+            <div class="content">
+                <h1>The Home Page of {{app_name}}</h1>
+                <h2>This is the main Flask blueprint</h2>
+                <h3>Test H3</h3>
+                <h4>Test H4</h4>
+                <h5>Test H5</h5>
+                <h6>Test H6</h6>
+                <p>Test paragraph</p>
+            </div>
+        </div>
+    </section>
+{% endblock %}
