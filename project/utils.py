@@ -4,6 +4,7 @@ from flask import redirect, url_for, request, abort
 import json
 from flask_flashy import flash
 from functools import wraps
+from os import environ
 
 def db_add(object) -> bool:
   """Adds the given object to the database and commits.
@@ -118,10 +119,10 @@ def reset_database(dev=False) -> bool:
   
 def dev_database() -> bool:
   from project.models import User, Profile, Role, ProfileRole
-  profile = Profile(username="Alex")
+  profile = Profile(username=environ["DEV_USER"])
   db_add(profile)
-  user = User(email="alexcchichester@gmail.com", profile=profile)
-  user.set_password("alexalex")
+  user = User(email=environ['DEV_EMAIL'], profile=profile)
+  user.set_password(environ['DEV_PASS'])
   db_add(user)
   role = Role(name="Admin")
   db_add(role)

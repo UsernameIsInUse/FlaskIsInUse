@@ -41,9 +41,13 @@ class Profile(db.Model):
     return f"{self.username}"
   
   @property
+  def roles(self) -> list:
+    return [link.role for link in self.role_links]
+  
+  @property
   def is_admin(self) -> bool:
-    for link in self.role_links:
-      if link.role.name == 'Admin':
+    for role in self.roles:
+      if role.name == 'Admin':
         return True
     return False
   
