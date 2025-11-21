@@ -36,9 +36,6 @@ class ProfileView(CustomBaseModelView):
 class RoleView(CustomBaseModelView):
   column_list = ['name', 'date_created']
   column_searchable_list = ['name']
-
-class ProfileRoleView(CustomBaseModelView):
-  column_list = ['profile', 'role', 'date_created']
   
 class LogView(CustomBaseModelView):
   column_list = ['user', 'description', 'date_created']
@@ -47,5 +44,4 @@ class LogView(CustomBaseModelView):
 admin.add_view(UserView(User, db.session))
 admin.add_view(ProfileView(Profile, db.session))
 admin.add_view(RoleView(Role, db.session))
-admin.add_view(ProfileRoleView(ProfileRole, db.session))
 admin.add_view(LogView(Log, db.session))

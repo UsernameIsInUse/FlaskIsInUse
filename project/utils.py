@@ -118,13 +118,13 @@ def reset_database(dev=False) -> bool:
     return False
   
 def dev_database() -> bool:
-  from project.models import User, Profile, Role, ProfileRole
-  profile = Profile(username=environ["DEV_USER"])
+  from project.models import User, Profile, Group, UserGroup
+  group = Group(name=environ["DEV_USER"])
+  db_add(group)
+  profile = Profile(username=environ["DEV_USER"], group=group)
   db_add(profile)
-  user = User(email=environ['DEV_EMAIL'], profile=profile)
+  user = User(email=environ['DEV_EMAIL'])
   user.set_password(environ['DEV_PASS'])
   db_add(user)
-  role = Role(name="Admin")
-  db_add(role)
-  role_link = ProfileRole(profile=profile, role=role)
-  db_add(role_link)
+  usergroup = UserGroup(user=user, group=group)
+  db_add(usergroup)

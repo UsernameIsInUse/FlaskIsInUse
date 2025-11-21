@@ -21592,6 +21592,9 @@ has-background-danger.is-hoverable:active {
   --bulma-strong-weight: 700;
 }
 
+/*.button.is-outlined{
+  color: var(--bulma-content-heading-color);
+}*/
 .version {
   position: fixed;
   bottom: 1rem;
@@ -21614,3 +21617,35 @@ has-background-danger.is-hoverable:active {
     margin-right: 1rem;
   }
 }
+/*.button {
+  font-weight: 700;
+
+  &:before {
+    width: 100%;
+    height: 100%;
+    background-color: hsl(var(--bulma-button-h),var(--bulma-button-s),calc(var(--bulma-button-l)));
+    position: absolute;
+    display: block;
+    content: ' ';
+    left: 0;
+    top: 0;
+    filter: blur(15px);
+    -webkit-filter: blur(15px);
+    border-radius: 50px;
+    opacity: 0;
+    -webkit-transition-duration: 0.2s;
+    transition-duration: 0.2s;
+    z-index: -1;
+    -webkit-backface-visibility: hidden;
+    -moz-backface-visibility: hidden;
+    -webkit-transform: translate3d(0, 0, 0);
+    -moz-transform: translate3d(0, 0, 0);
+
+  }
+
+  &:hover{
+    &:before {
+      opacity:1;
+    }
+  }
+}*/

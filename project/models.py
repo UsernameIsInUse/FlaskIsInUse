@@ -5,26 +5,29 @@ from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 import json
 from flask import url_for
-from flask_authorize import AllowancesMixin
+from flask_authorize import PermissionsMixin, AllowancesMixin
 
 class User(UserMixin, db.Model):
   __tablename__ = 'users'
   id = db.Column(db.Integer, primary_key=True)
+  date_created = db.Column(db.DateTime, nullable=True, default=func.now())
+  logs = db.relationship('Log', backref='user', lazy=True)
   
   # local auth
   email = db.Column(db.String(255), unique=True, nullable=False)
   hashed_pass = db.Column(db.String(255), nullable = False)
   
   # oauth
-  oauth_accounts = db.relationship("OAuthAccount", backref="user", lazy=True)
+  
+  # permissions
+  role_links = db.relationship("UserRole", back_populates="user")
+  group_links = db.relationship("UserGroup", back_populates="user")
   
   # user data / settings
-  date_created = db.Column(db.DateTime, nullable=True, default=func.now())
   confirmed = db.Column(db.Boolean, default=False) # Currently unused
   date_confirmed = db.Column(db.DateTime, nullable=True) # Currently unused
-  profile_links = db.relationship("UserPortfolio", back_populates="user")
   tos = db.Column(db.Boolean, default=True)
-  logs = db.relationship('Log', backref='user', lazy=True)
+  
   
   def __repr__(self):
     return f"{self.email}"
@@ -37,23 +40,69 @@ class User(UserMixin, db.Model):
     return check_password_hash(self.hashed_pass, password)
   
   @property
-  def profiles(self) -> list:
-    return [link.profile for link in self.profile_links]
+  def roles(self) -> list:
+    return [link.role for link in self.role_links]
+  
+  @property
+  def groups(self) -> list:
+    return [link.group for link in self.group_links]
 
-class OAuthAccount(db.Model):
+class Role(db.Model, AllowancesMixin):
+  __tablename__ = 'roles'
+  __allowances__ = {}
   id = db.Column(db.Integer, primary_key=True)
-  provider = db.Column(db.String(50), nullable=False)
-  provider_user_id = db.Column(db.String(255), nullable=False)
-  token = db.Column(db.JSON, nullable=False)
-  user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+  name = db.Column(db.String(255), unique=True, nullable=False)
+  date_created = db.Column(db.DateTime, nullable=False, default=func.now()) 
+  user_links = db.relationship("UserRole", back_populates="role")
+  
+  def __repr__(self):
+    return f"{self.name}"
+  
+class Group(db.Model):
+  __tablename__ = 'groups'
+  id = db.Column(db.Integer, primary_key=True)
+  name = db.Column(db.String(255), unique=True, nullable=False)
+  date_created = db.Column(db.DateTime, nullable=False, default=func.now()) 
+  user_links = db.relationship("UserGroup", back_populates="group")
+  
+  def __repr__(self):
+    return f"{self.name}"
+  
+class UserRole(db.Model):
+  __tablename__ = 'user_roles'
+  id = db.Column(db.Integer, primary_key=True)
+  user_id = db.Column(db.ForeignKey("users.id"), nullable=False)
+  role_id = db.Column(db.ForeignKey("roles.id"), nullable=False)
+  user = db.relationship("User", back_populates="role_links")
+  role = db.relationship("Role", back_populates="user_links")
+  date_created = db.Column(db.DateTime, nullable=False, default=func.now())
+  
+  def __repr__(self):
+    return f"{self.user} - {self.role}"
 
-class Profile(db.Model):
+class UserGroup(db.Model):
+  __tablename__ = 'user_groups'
+  id = db.Column(db.Integer, primary_key=True)
+  user_id = db.Column(db.ForeignKey("users.id"), nullable=False)
+  group_id = db.Column(db.ForeignKey("groups.id"), nullable=False)
+  user = db.relationship("User", back_populates="group_links")
+  group = db.relationship("Group", back_populates="user_links")
+  date_created = db.Column(db.DateTime, nullable=False, default=func.now())
+  
+  def __repr__(self):
+    return f"{self.user} - {self.group}"
+class Profile(db.Model, PermissionsMixin):
+  """Provide a `username` and a `group`
+  """
   __tablename__ = 'profiles'
+  __permissions__ = dict(
+        owner=['read', 'update', 'delete'],
+        group=['read', 'update'],
+        other=['read']
+    )
   id = db.Column(db.Integer, primary_key=True)
   username = db.Column(db.String(64), unique=True, nullable=False)
   date_created = db.Column(db.DateTime, nullable=False, default=func.now())
-  users = db.relationship('User', backref='profile', lazy=True)
-  user_links = db.relationship("UserPortfolio", back_populates="profile")
   
   # Other profile data
   
@@ -74,44 +123,6 @@ class Profile(db.Model):
   @property
   def url(self) -> str:
     return url_for('views.profile', username=self.username)
-
-class UserPortfolio(db.Model):
-  __tablename__ = 'profile_roles'
-  id = db.Column(db.Integer, primary_key=True)
-  user_id = db.Column(db.ForeignKey("users.id"), nullable=False)
-  profile_id = db.Column(db.ForeignKey("profiles.id"), nullable=False)
-  user = db.relationship("User", back_populates="profile_links")
-  profile = db.relationship("Profile", back_populates="user_links")
-  
-  permission = db.Column(db.String(50), nullable=False)
-  
-  date_created = db.Column(db.DateTime, nullable=False, default=func.now())
-  
-  def __repr__(self):
-    return f"{self.profile} - {self.role}"
-
-class Role(db.Model):
-  __tablename__ = 'roles'
-  id = db.Column(db.Integer, primary_key=True)
-  name = db.Column(db.String(64), unique=True, nullable=False)
-  date_created = db.Column(db.DateTime, nullable=False, default=func.now()) 
-  profile_links = db.relationship("ProfileRole", back_populates="role")
-  
-  def __repr__(self):
-    return f"{self.name}"
-  
-class ProfileRole(db.Model):
-  __tablename__ = 'profile_roles'
-  id = db.Column(db.Integer, primary_key=True)
-  profile_id = db.Column(db.ForeignKey("profiles.id"), nullable=False)
-  role_id = db.Column(db.ForeignKey("roles.id"), nullable=False)
-  profile = db.relationship("Profile", back_populates="role_links")
-  role = db.relationship("Role", back_populates="profile_links")
-  date_created = db.Column(db.DateTime, nullable=False, default=func.now())
-  
-  def __repr__(self):
-    return f"{self.profile} - {self.role}"
-
 class Log(db.Model):
   __tablename__ = 'logs'
   id = db.Column(db.Integer, primary_key=True)
