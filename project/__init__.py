@@ -1,8 +1,7 @@
 from flask import Flask
 from config import Config
-from project.extensions import flashy, ipban, csrf, db, migrate, admin, login
+from project.extensions import flashy, ipban, csrf, db, migrate, admin, login, squeeze, toolbar, authorize
 import flask_noai
-
 
 def create_app(config_class=Config):
   app = Flask(__name__)
@@ -10,6 +9,7 @@ def create_app(config_class=Config):
   
   # Init extensions
   flask_noai.noai(app)
+  squeeze.init_app(app)
   ipban.init_app(app)
   csrf.init_app(app)
   db.init_app(app)
@@ -17,6 +17,8 @@ def create_app(config_class=Config):
   admin.init_app(app)
   login.init_app(app)
   flashy.init_app(app)
+  toolbar.init_app(app)
+  authorize.init_app(app)
   
   # Additional configurations
   ipban.load_nuisances()
@@ -39,6 +41,7 @@ def create_app(config_class=Config):
       version=app.config['APP_VERSION'],
       app_name=app.config['APP_NAME'],
       font_awesome=app.config['FA'],
+      typekit=app.config['TYPEKIT']
     )
   
   return app

@@ -1,0 +1,22 @@
+.version{
+  position:fixed;
+  bottom:1rem;
+  right:1rem;
+}
+
+.flashes {
+  position:fixed;
+  z-index:999;
+  top:4rem;
+  right:2rem;
+  display:flex;
+  flex-direction: column;
+  gap:0.5rem;
+  align-items: end;
+}
+
+@media screen and (max-width: 580px) {
+  .flashes {
+    margin-right:1rem;
+  }
+}

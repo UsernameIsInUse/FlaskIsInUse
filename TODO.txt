@@ -1,0 +1,10 @@
+session based auth - flask-login
+role/access - flask-authorize
+account/profile/etc management - custom
+email confirmation/password reset - flask-mail, itsdangerous
+unified sign in - probably custom
+oauth - flask-dance
+
+
+expand and customize bulma
+htmx

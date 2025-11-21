@@ -7,15 +7,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
     <link rel="preconnect" href="https://ajax.googleapis.com" />
-    <!--<link rel="preconnect" href="https://use.typekit.net" />-->
+    <link rel="preconnect" href="https://use.typekit.net" />
     <link rel="preconnect" href="https://kit.fontawesome.com" />
     {% block pre %}{% endblock %}
 
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.2/css/bulma.min.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <script src="https://kit.fontawesome.com/{{font_awesome}}.js" crossorigin="anonymous" async></script>
+    <link rel="stylesheet" type="text/css"  href="{{ url_for('static', filename='main.css') }}">
+    <link rel="stylesheet" type="text/css"  href="{{ url_for('static', filename='style.css') }}">
+    
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-
+    <link rel="stylesheet" href="https://use.typekit.net/{{typekit}}.css">
+    <script src="https://kit.fontawesome.com/{{font_awesome}}.js" crossorigin="anonymous" async></script>
+    
     <link rel="icon" href="{{ url_for('static', filename='img/favicon.png') }}" type="image/png">
     <link rel="shortcut icon" href="{{ url_for('static', filename='img/favicon.png') }}" type="image/png">
 

@@ -26,10 +26,19 @@ class MyAdminIndexView(AdminIndexView):
     return redirect(url_for('views.login', next=request.url))
     
   
-admin = Admin(name="Admin", template_mode="bootstrap3", url="/admin/", index_view=MyAdminIndexView())
+admin = Admin(name="Admin", url="/admin/", index_view=MyAdminIndexView())
 
 from flask_ipban import IpBan
 ipban = IpBan()
 
 from flask_flashy import Flashy
 flashy = Flashy()
+
+from flask_squeeze import Squeeze
+squeeze = Squeeze()
+
+from flask_debugtoolbar import DebugToolbarExtension
+toolbar = DebugToolbarExtension()
+
+from flask_authorize import Authorize
+authorize = Authorize()
