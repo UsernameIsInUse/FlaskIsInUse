@@ -1,4 +1,4 @@
-{% macro input(name) %}
+{% macro input(form, name) %}
 {% set field = form[name] %}
 <div class="field">
   {{ field.label(class="label") }}
@@ -15,7 +15,7 @@
 </div>
 {% endmacro %}
 
-{% macro password(name) %}
+{% macro password(form, name) %}
 {% set field = form[name] %}
 <div class="field">
   {{ field.label(class="label") }}

@@ -1,0 +1,8 @@
+{% macro toast(message) %}
+<li class="notification is-{{message.category}} is-light">
+  {{message.message}}
+  {% if message.url %}
+  <a href="{{message.url}}"><i class="fa-solid fa-{% if message.fa %}{{message.fa}}{% else %}arrow-up-right-from-square{% endif %}"></i></a>
+  {% endif %}
+</li>
+{% endmacro %}

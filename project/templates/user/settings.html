@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block pre %}{% endblock %}
+{% block head %}{% endblock %}
+
+{% block title %}Settings | {% endblock %}
+
+{% block content %}
+{% from 'macros/settings.html' import item, script %}
+    <section class="section">
+        <div class="container">
+            <h1 class="title is-1">Settings</h1>
+            <div class="columns">
+                <div class="column is-one-quarter">
+                    <div id="menu" class="menu">
+                        <p class="menu-label">General</p>
+                        <ul class="menu-list">
+                            {{ item(name="Account", target="account") }}
+                            {{ item(name="Preferences", target="preferences") }}
+                            {{ item(name="Manage Subscription", target="subscription") }}
+                        </ul>
+                        <p class="menu-label">Profiles</p>
+                        <ul class="menu-list">
+                            {% for group in current_user.groups %}
+                            {{ item(name=group.name, target=group.name) }}
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                {{ script() }}
+                <div class="column targets">
+                    <div id="account" class="is-hidden">
+                        {% from 'macros/form.html' import input, password, showPassword, checkbox, submit with context %}
+                        <div class='content'>
+                            <h4>Change Email</h4>
+                            <form action="" method="post" class="block">
+                                {{ email_form.hidden_tag() }}
+
+                                {{ input(email_form,'email') }}
+
+                                {{ submit('submit', 'Submit', 'primary') }}
+                            </form>
+                            <hr>
+                            <h4>Change Password</h4>
+                            <a class="button is-primary" href={{url_for('views.password_request_send', email=current_user.email)}}>Reset Password</a>
+                        </div>
+                    </div>
+                    <div id="preferences" class="is-hidden">
+                        <p>Preferences</p>
+                    </div>
+                    <div id="subscription" class="is-hidden">
+                        <p>Subscription</p>
+                    </div>
+                    <div id="account" class="is-hidden">
+                        <p>Account</p>
+                    </div>
+                    {% for group in current_user.groups %}
+                    <div id="{{group.name}}" class="is-hidden">
+                        <p>{{group.name}}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}

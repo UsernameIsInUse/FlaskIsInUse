@@ -1,7 +1,7 @@
 
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark" class="default">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -9,14 +9,15 @@
     <link rel="preconnect" href="https://ajax.googleapis.com" />
     <link rel="preconnect" href="https://use.typekit.net" />
     <link rel="preconnect" href="https://kit.fontawesome.com" />
+    <link rel="preconnect" href="https://cdn.jsdelivr.net/" />
     {% block pre %}{% endblock %}
 
     <link rel="stylesheet" type="text/css"  href="{{ url_for('static', filename='main.css') }}">
-    <link rel="stylesheet" type="text/css"  href="{{ url_for('static', filename='style.css') }}">
     
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <link rel="stylesheet" href="https://use.typekit.net/{{typekit}}.css">
     <script src="https://kit.fontawesome.com/{{font_awesome}}.js" crossorigin="anonymous" async></script>
+    <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.8/dist/htmx.min.js"></script>
     
     <link rel="icon" href="{{ url_for('static', filename='img/favicon.png') }}" type="image/png">
     <link rel="shortcut icon" href="{{ url_for('static', filename='img/favicon.png') }}" type="image/png">
@@ -41,29 +42,16 @@
 </head>
 <body>
     <script>0</script>
-    {% with messages = get_flashy_messages() %}
-        {% if messages %}
-            <ul class="flashes">
-            {% for message in messages %}
-                {% if message.url %}
-                    <a href="{{ message.url }}"><li class="button {% if message.category %}is-{{ message.category }} is-outlined{% endif %}">
-                      <span class="level">
-                        <span class="level-item">{{ message.message }}</span>
-                        <span class="level-item"><i class="fa-solid fa-arrow-up-right-from-square"></i></span>
-                      </span>
-                    </li></a>
-                {% else %}
-                    <li class="button {% if message.category != "message" %}is-{{ message.category }} is-outlined{% endif %}">{{ message.message }}</li>
-                {% endif %}
-            {% endfor %}
-            </ul>
-        {% endif %}
-    {% endwith %}
-    {% include "nav.html" %}
-    <div class="content">
-        {% block content %}{% endblock %}
-    </div>
-    <a href="#" class="button is-small is-info is-outlined version">{{version}}</a>
+      <ul class="flashes">
+      {% from 'macros/toast.html' import toast with context %}
+      {% with messages = get_flashy_messages() %}
+      {% if messages %}
+      {% for message in messages %}
+          {{ toast(message) }}
+      {% endfor %}
+      {% endif %}
+      {% endwith %}
+      </ul>
     <script>
       function fadeOutFlashes() {
         // Select all li elements inside the ul with class "flashes"
@@ -89,6 +77,54 @@
             $(this).remove();
         });
       });
+
+      window.flash = function (message, type = "info", url = "") {
+        const container = $('ul.flashes');
+
+        const li = document.createElement("li");
+        li.className = `notification is-${type} is-light`;
+        const text = document.createTextNode(message);
+        li.append(text);
+
+        if (url) {
+          const link = document.createElement("a");
+          link.href = url;
+          link.innerHTML = '<i class="fa-solid fa-arrow-up-right-from-square"></i>';
+          link.style.marginLeft = "0.5rem";
+          li.append(link);
+        }
+
+        container.append(li);
+        fadeOutFlashes();
+      };
     </script>
+    <a href="#" class="button is-small is-info is-outlined version">{{version}}</a>
+    {% include "nav.html" %}
+    <script>
+        const nav = document.querySelector('nav');
+        const update = () => {
+            document.documentElement.style.setProperty('--nav-height', `${nav.offsetHeight}px`);
+        };
+        update();
+        window.addEventListener('resize', update);
+    </script>
+    <main {% if sidebar_active %}class="open"{% endif %}>
+        {% include "sidebar.html" %}
+        <div class="main">
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+    <script>
+      document.body.addEventListener("htmx:responseError", (e) => {
+        const data = e.detail.xhr.response;
+        try {
+          const parsed = JSON.parse(data);
+          if (parsed.message) {
+            window.flash(parsed.message, type="warning");
+          }
+        } catch (_) {}
+      });
+    </script>
+    <!--{% include "footer.html" %}-->
 </body>
 </html>

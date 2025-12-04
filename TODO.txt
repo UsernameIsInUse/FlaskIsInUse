@@ -1,5 +1,24 @@
+User settings page
+  account
+    email
+    password
+  profiles
+    {profile}
+      settings
+      users
+  preferences
+    marketing emails
+    site theme override
+  subscription
+    manage subscription
+  close account
+
+
+
+
+
 account/profile/etc management - custom
-email confirmation/password reset - flask-mail, itsdangerous
+password reset - flask-mail, itsdangerous
 
 
 expand and customize bulma

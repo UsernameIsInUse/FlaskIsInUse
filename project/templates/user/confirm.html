@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block head %}
+{% endblock %}
+
+{% block title %}
+vfolio | Confirm Email
+{% endblock %}
+
+{% block hidebar %}
+hide
+{% endblock %}
+
+{% block content %}
+<section class="section">
+  {% from 'macros/form.html' import input, submit with context %}
+  <div class="container">
+    <h1 class="title is-1">Confirm your Email</h1>
+    <div class="content">
+      <p>Check your email (including your spam folder) to confirm your email.</p>
+      <p>Confirmed on a different device? <a href="{{url_for('views.index')}}" style="text-decoration:underline;">Set up your account!</a></p>
+      <p>Did you mistype your email? Change it below.</a></p>
+    </div>
+    <form action="" method="post" class="block">
+      {{ form.hidden_tag() }}
+
+      {{ input(form,'email') }}
+
+      {{ submit('submit', 'Submit', 'primary') }}
+    </form>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,15 @@
+{% extends "email/base.html" %}
+
+{% block preheader %}Finish signing up for vfolio!{% endblock %}
+
+{% block content %}
+<p>Welcome! Thanks for signing up for vfolio.</p>
+<p>Please follow this link to activate your account:</p>
+{% endblock %}
+
+{% block buttonLink %}{{ confirm_url }}{% endblock %}
+{% block buttonText %}Verify Email{% endblock %}
+
+{% block content2 %}
+<p>If you did not sign up for vfolio, you can safely ignore this email.</p>
+{% endblock %}

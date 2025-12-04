@@ -96,7 +96,7 @@ $scheme-main: hsl(iv.$scheme-h, iv.$scheme-s, $scheme-main-l);
   );
 
   // Colors
-  $no-palette: ("white", "black", "light", "dark");
+  $no-palette: ("white", "black");
 
   @each $name, $color in dv.$colors {
     $base: $color;

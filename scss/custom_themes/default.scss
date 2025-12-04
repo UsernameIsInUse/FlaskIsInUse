@@ -19,15 +19,23 @@
   --bulma-danger-l: 50%;
   --bulma-scheme-h: 200;
   --bulma-scheme-s: 20%;
+  --bulma-light-h: var(--bulma-scheme-h);
+  --bulma-light-s: var(--bulma-scheme-s);
   --bulma-light-l: 97%;
   --bulma-light-invert-l: 9%;
+  --bulma-dark-h: var(--bulma-scheme-h);
+  --bulma-dark-s: var(--bulma-scheme-s);
   --bulma-dark-l: 9%;
   --bulma-dark-invert-l: 97%;
   --bulma-family-primary: Proxima Nova,sans-serif;
   --bulma-family-secondary: Proxima Nova,sans-serif;
   --bulma-family-code: Source Code,monospace;
-  --bulma-duration: 250ms;
+  --bulma-duration: 200ms;
   --bulma-strong-weight: 700;
+  --bulma-family-logo: Proxima Nova,sans-serif;
+
+  --bulma-menu-light-background-color: var(--bulma-scheme-main-bis);
+  --bulma-menu-dark-background-color: var(--bulma-scheme-main-bis);
 }
 
 /*.button.is-outlined{

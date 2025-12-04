@@ -10,7 +10,8 @@ def page_not_found(e):
   flash('Page not found!', 'warning')
   if current_user.is_authenticated:
     if current_user.profile:
-      return redirect(current_user.profile.url)
+      #return redirect(current_user.profile.url)
+      return redirect(url_for('views.index'))
   return redirect(url_for('views.index'))
 
 
@@ -20,7 +21,8 @@ def forbidden(e):
   flash("You seem to be trying to do something you should not do!", 'danger')
   if current_user.is_authenticated:
     if current_user.profile:
-      return redirect(current_user.profile.url)
+      #return redirect(current_user.profile.url)
+      return redirect(url_for('views.index'))
   return redirect(url_for('views.index'))
 
 
@@ -30,5 +32,6 @@ def internal_server_error(e):
   flash('Whoops, something happened!', 'danger')
   if current_user.is_authenticated:
     if current_user.profile:
-      return redirect(current_user.profile.url)
+      #return redirect(current_user.profile.url)
+      return redirect(url_for('views.index'))
   return redirect(url_for('views.index'))

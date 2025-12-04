@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block head %}
+{% endblock %}
+
+{% block title %}
+Unsubscribe
+{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="container">
+        <h1 class="title is-1">You have been successfully unsubscribed.</h1>
+        <p>To resubscribe, <a href="{{url_for('views.login')}}">visit your settings.</a></p>
+    </div>
+</main>
+{% endblock %}

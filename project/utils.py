@@ -1,10 +1,9 @@
-from project import db
+from project import db, mail
 from flask_login import current_user
-from flask import redirect, url_for, request, abort
 import json
-from flask_flashy import flash
-from functools import wraps
 from os import environ
+from flask_mail import Message
+from flask import current_app
 
 def db_add(object) -> bool:
   """Adds the given object to the database and commits.
@@ -54,13 +53,6 @@ def log(data:dict=None, request=None, user=None, description:str=None) -> bool:
     print(e)
     return False
 
-def is_admin(user=current_user):
-  return user.is_authenticated and user.profile.is_admin
-
-def login_redirect(next=True):
-  flash("You must be logged in to access this page.", "warning")
-  return redirect(url_for('views.login', next=request.url))
-
 def get_profile(username:str):
   """Returns a profile from a username.
 
@@ -73,32 +65,17 @@ def get_profile(username:str):
   from project.models import Profile
   return Profile.query.filter_by(username=username).first_or_404()
 
-def admin_check_decorator(f):
-  @wraps(f)
-  def decorated_function(*args, **kwargs):
-    """Checks to see if the current_user has admin privileges."""
-    if current_user.is_authenticated:
-      if not current_user.profile.is_admin:
-        return abort(403)
-    else:
-      return login_redirect()
-    return f(*args, **kwargs)
-  return decorated_function
+def get_group(username:str):
+  """Returns a group from a username.
 
-def user_check_decorator(f):
-  @wraps(f)
-  def decorated_function(*args, **kwargs):
-    """Checks to see if the current_user is the same user that is attached to the profile in the keyword arguments.
-    """
-    if current_user.is_authenticated:
-      username = kwargs.get('username')
-      profile = get_profile(username)
-      if current_user.profile != profile:
-        return abort(403)
-    else:
-      return login_redirect()
-    return f(*args, **kwargs)
-  return decorated_function
+  Args:
+      username (str): Username of the profile.
+
+  Returns:
+      Profile
+  """
+  from project.models import Group
+  return Group.query.filter_by(name=username).first_or_404()
 
 def reset_database(dev=False) -> bool:
   """Resets the database.
@@ -118,13 +95,38 @@ def reset_database(dev=False) -> bool:
     return False
   
 def dev_database() -> bool:
-  from project.models import User, Profile, Group, UserGroup
-  group = Group(name=environ["DEV_USER"])
-  db_add(group)
-  profile = Profile(username=environ["DEV_USER"], group=group)
-  db_add(profile)
-  user = User(email=environ['DEV_EMAIL'])
+  from project.models import User, Profile, Group, UserGroup, Role, UserRole
+  user = User(email=environ['DEV_EMAIL'], unconfirmed_email=environ['DEV_EMAIL'])
   user.set_password(environ['DEV_PASS'])
   db_add(user)
+  group = Group(name=environ["DEV_USER"])
+  db_add(group)
+  profile = Profile(username=environ["DEV_USER"], group=group, owner=user)
+  db_add(profile)
   usergroup = UserGroup(user=user, group=group)
   db_add(usergroup)
+  admin = Role(name="Admin")
+  db_add(admin)
+  userrole = UserRole(user=user, role=admin)
+  db_add(userrole)
+  
+def send_email(recipients:list,subject:str,html:str):
+  """Sends individual emails to a list of recipients.
+
+  Args:
+      recipients (list): List of recipients to individually be emailed.
+      subject (str): Subject of the email.
+      html (str): Body of the email.
+  """
+  try:
+    for recipient in recipients:
+      msg = Message(
+        subject=subject,
+        recipients=[recipient],
+        html=html,
+        sender=current_app.config["MAIL_DEFAULT_SENDER"]
+      )
+      mail.send(msg)
+      log(f'Email Sent: {subject} to {recipient}')
+  except:
+    log(f'Email Failed to Send: {subject} to {recipient}')

@@ -1,6 +1,7 @@
 from project.extensions import db
 from sqlalchemy.sql import func
 from project.utils import log
+from project.access_control import is_admin
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 import json
@@ -24,8 +25,9 @@ class User(UserMixin, db.Model):
   group_links = db.relationship("UserGroup", back_populates="user")
   
   # user data / settings
-  confirmed = db.Column(db.Boolean, default=False) # Currently unused
-  date_confirmed = db.Column(db.DateTime, nullable=True) # Currently unused
+  unconfirmed_email = db.Column(db.String(255), nullable=True)
+  confirmed = db.Column(db.Boolean, default=False)
+  date_confirmed = db.Column(db.DateTime, nullable=True)
   tos = db.Column(db.Boolean, default=True)
   
   
@@ -46,6 +48,25 @@ class User(UserMixin, db.Model):
   @property
   def groups(self) -> list:
     return [link.group for link in self.group_links]
+  
+  @property
+  def main_group(self):
+    return self.group_links[0].group
+  
+  @property
+  def profile(self):
+    return self.main_group.profile
+  
+  @property
+  def profiles(self) -> list:
+    profiles = []
+    for group in self.groups:
+      profiles.append(Profile.query.filter_by(username=group.name).first())
+    return profiles
+  
+  @property
+  def is_admin(self):
+    return is_admin(self)
 
 class Role(db.Model, AllowancesMixin):
   __tablename__ = 'roles'
@@ -58,6 +79,10 @@ class Role(db.Model, AllowancesMixin):
   def __repr__(self):
     return f"{self.name}"
   
+  @property
+  def users(self) -> list:
+    return [link.user for link in self.user_links]
+  
 class Group(db.Model):
   __tablename__ = 'groups'
   id = db.Column(db.Integer, primary_key=True)
@@ -67,6 +92,14 @@ class Group(db.Model):
   
   def __repr__(self):
     return f"{self.name}"
+  
+  @property
+  def users(self) -> list:
+    return [link.user for link in self.user_links]
+  
+  @property
+  def profile(self):
+    return Profile.query.filter_by(username=self.name).first()
   
 class UserRole(db.Model):
   __tablename__ = 'user_roles'
@@ -111,18 +144,12 @@ class Profile(db.Model, PermissionsMixin):
   
   @property
   def users(self) -> list:
-    return [link.user for link in self.user_links]
-  
-  @property
-  def is_admin(self) -> bool:
-    for role in self.roles:
-      if role.name == 'Admin':
-        return True
-    return False
+    return self.group.users
   
   @property
   def url(self) -> str:
     return url_for('views.profile', username=self.username)
+
 class Log(db.Model):
   __tablename__ = 'logs'
   id = db.Column(db.Integer, primary_key=True)

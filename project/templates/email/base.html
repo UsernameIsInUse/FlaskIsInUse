@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Email Template</title>
+  <style>
+    /* General Reset for Older Clients */
+    body, table, td, a {
+      text-size-adjust: 100%; /* Prevents auto-resizing of text in mobile clients */
+      -webkit-text-size-adjust: 100%;
+      -ms-text-size-adjust: 100%;
+    }
+    table, td {
+      mso-table-lspace: 0pt;
+      mso-table-rspace: 0pt;
+    }
+    img {
+      -ms-interpolation-mode: bicubic; /* Improves rendering of images in Outlook */
+    }
+    /* Prevent gaps between images */
+    img {
+      display: block;
+      border: 0;
+      outline: none;
+      text-decoration: none;
+    }
+    body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #f4f4f4;
+    }
+    table {
+      border-collapse: collapse !important;
+    }
+    /* Responsive Styles */
+    @media screen and (max-width: 600px) {
+      .container {
+        width: 100% !important;
+      }
+      .responsive-table {
+        width: 100% !important;
+      }
+      .mobile-hide {
+        display: none !important;
+      }
+      .mobile-center {
+        text-align: center !important;
+      }
+    }
+  </style>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f4f4f4;">
+
+  <!-- Hidden Preheader Text (Optional) -->
+  <div style="display:none; font-size:0px; color:#ffffff; line-height:1px; max-height:0px; max-width:0px; opacity:0; overflow:hidden;">
+    {% block preheader %}{% endblock %}
+  </div>
+
+  <!-- Main Email Container -->
+  <table border="0" cellpadding="0" cellspacing="0" width="100%">
+    <tr>
+      <td align="center" style="padding: 20px 0; background-color: #f4f4f4;">
+        <table border="0" cellpadding="0" cellspacing="0" width="600" class="container" style="max-width: 600px; background-color: #ffffff;">
+          
+          <!-- Header Section -->
+          <tr>
+            <td align="center" bgcolor="#1c282e" style="padding: 20px; color: #feffff; font-family: Arial, sans-serif; font-size: 24px;">
+              <img src='{{url_for("static", filename="img/logo.png", _external=True)}}' style='width:150px;' alt="vfolio Logo">
+            </td>
+          </tr>
+
+          <!-- Main Content Section -->
+          <tr>
+            <td style="padding: 20px; font-family: Arial, sans-serif; font-size: 16px; line-height: 24px; color: #333333;">
+              {% block content %}{% endblock %}
+              <!-- Button Section -->
+              <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-top: 20px;">
+                <tr>
+                  <td align="center">
+                    <table border="0" cellspacing="0" cellpadding="0">
+                      <tr>
+                        <td align="center" bgcolor="#e81931" style="border-radius: 50px;">
+                          <a href="{% block buttonLink %}{% endblock %}" target="_blank" style="font-size: 16px; font-family: Arial, sans-serif; color: #ffffff; text-decoration: none; padding: 12px 24px; display: inline-block;">{% block buttonText %}{% endblock %}</a>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+              {% block content2 %}{% endblock %}
+            </td>
+          </tr>
+
+          <!-- Footer Section -->
+          <tr>
+            <td align="center" bgcolor="#f4f4f4" style="padding: 20px; font-family: Arial, sans-serif; font-size: 12px; line-height: 18px; color: #666666; max-width:300px;">
+              <p>Made by Alex.</p>
+              <p>{% if unsubscribe %}You are receiving this email because you opted-in to emails about vfolio.<br>You can change what emails you receive on your <a href="{{url_for('views.login', _external=True)}}" target="_blank" style="color: #666666;">settings page</a>, or <a href="{{url_for('email_unsubscribe', token=unsubscribe, _external=True)}}" target="_blank" style="color: #007BFF; text-decoration: none;">Unsubscribe</a>{% endif %}</p>
+              <p>© vfolio | 2522 Bedford Ave, Brooklyn, NY 11226</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

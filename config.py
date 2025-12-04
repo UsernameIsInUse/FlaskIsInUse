@@ -22,3 +22,13 @@ class Config:
   APP_NAME = "FlaskApp"
   FA = environ['FA']
   TYPEKIT = environ['TYPEKIT']
+  MAIL_SERVER = "smtp.gmail.com"
+  MAIL_PORT = 465
+  MAIL_USE_SSL = True
+  MAIL_USERNAME = environ['EMAIL_USERNAME']
+  MAIL_PASSWORD = environ['EMAIL_PASSWORD']
+  MAIL_DEFAULT_SENDER = environ['EMAIL_ALIAS']
+  API_TITLE = "API"
+  API_VERSION = "v1"
+  OPENAPI_VERSION = "3.1.1"
+  DEBUG_TB_INTERCEPT_REDIRECTS = False

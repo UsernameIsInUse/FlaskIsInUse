@@ -84,7 +84,7 @@ $button-responsive-sizes: (
   ),
 ) !default;
 
-$no-palette: ("white", "black", "light", "dark");
+$no-palette: ("white", "black");
 
 .#{iv.$class-prefix}button {
   @include cv.register-vars(

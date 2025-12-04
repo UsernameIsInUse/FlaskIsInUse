@@ -1,0 +1,25 @@
+{% macro item(name,target,isactive=False) %}
+<li><button {% if isactive %}class="is-active"{% endif %} data-target="{{target}}">{{name}}</button></li>
+{% endmacro %}
+
+{% macro script() %}
+<script>
+    $(document).ready(function() {
+        $("#menu .menu-list button").first().toggleClass('is-active')
+        $(".targets div").first().toggleClass('is-hidden')
+        $(".targets div").first().toggleClass('is-active')
+
+        $("#menu .menu-list button").click(function() {
+            $("#menu .menu-list .is-active").toggleClass('is-active')
+            $(this).toggleClass('is-active')
+
+            var target = $(this).data('target')
+            $(".targets .is-active").toggleClass('is-hidden')
+            $(".targets .is-active").toggleClass('is-active')
+            
+            $("#"+target).toggleClass("is-hidden");
+            $("#"+target).toggleClass("is-active");
+        });
+    });
+</script>
+{% endmacro %}

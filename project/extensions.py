@@ -10,6 +10,9 @@ login = LoginManager()
 from flask_wtf import CSRFProtect
 csrf = CSRFProtect()
 
+from flask_authorize import Authorize
+authorize = Authorize()
+
 from flask_admin import Admin
 from flask_admin import AdminIndexView
 from flask_login import current_user
@@ -19,11 +22,11 @@ class MyAdminIndexView(AdminIndexView):
   def is_visible(self):
     return False
   def is_accessible(self):
-    return current_user.is_authenticated and current_user.profile.is_admin
+    return current_user.is_authenticated and current_user.is_admin
   def inaccessible_callback(self, name, **kwargs):
     if current_user.is_authenticated:
       return abort(403)
-    return redirect(url_for('views.login', next=request.url))
+    return redirect(url_for('views.login', next=request.full_path))
     
   
 admin = Admin(name="Admin", url="/admin/", index_view=MyAdminIndexView())
@@ -40,5 +43,8 @@ squeeze = Squeeze()
 from flask_debugtoolbar import DebugToolbarExtension
 toolbar = DebugToolbarExtension()
 
-from flask_authorize import Authorize
-authorize = Authorize()
+from flask_mail import Mail
+mail = Mail()
+
+from flask_smorest import Api
+api = Api()

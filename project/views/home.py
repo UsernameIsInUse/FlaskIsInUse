@@ -1,5 +1,6 @@
 from flask import render_template, redirect, url_for, request
-from project.utils import reset_database, admin_check_decorator
+from project.utils import reset_database
+from project.access_control import admin_check_decorator
 from project.views import bp
 
 @bp.route('/')
@@ -19,3 +20,7 @@ def tos():
 @bp.route('/privacy')
 def privacy():
   return render_template('home/privacy.html')
+
+@bp.route('/support')
+def support():
+  return render_template('home/support.html')

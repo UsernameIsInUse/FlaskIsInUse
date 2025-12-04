@@ -1,0 +1,14 @@
+<aside class="menu">
+    <p class="menu-label">General</p>
+    <ul class="menu-list">
+        <li><button>Account</button></li>
+        <li><button>Preferences</button></li>
+        <li><button>Manage Subscription</button></li>
+    </ul>
+    <p class="menu-label">Profiles</p>
+    <ul class="menu-list">
+        {% for group in current_user.groups %}
+        <li><button>{{group.name}}</button></li>
+        {% endfor %}
+    </ul>
+</aside>
