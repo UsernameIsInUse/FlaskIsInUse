@@ -29,6 +29,7 @@ class User(UserMixin, db.Model):
   confirmed = db.Column(db.Boolean, default=False)
   date_confirmed = db.Column(db.DateTime, nullable=True)
   tos = db.Column(db.Boolean, default=True)
+  marketing = db.Column(db.Boolean, nullable=True)
   
   
   def __repr__(self):
@@ -67,6 +68,10 @@ class User(UserMixin, db.Model):
   @property
   def is_admin(self):
     return is_admin(self)
+  
+  @property
+  def hex(self):
+    return self.email.encode("utf-8").hex()
 
 class Role(db.Model, AllowancesMixin):
   __tablename__ = 'roles'
@@ -100,6 +105,10 @@ class Group(db.Model):
   @property
   def profile(self):
     return Profile.query.filter_by(username=self.name).first()
+  
+  @property
+  def owner(self):
+    return self.profile.owner
   
 class UserRole(db.Model):
   __tablename__ = 'user_roles'

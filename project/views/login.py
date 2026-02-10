@@ -8,6 +8,7 @@ from project.utils import log, db_add, send_email
 from project.forms import LoginForm, RegisterForm, EmailChangeForm, EmailForm, PasswordChangeForm
 from project.access_control import generate_token, confirm_token, confirmed_check_decorator, not_confirmed_check_decorator, not_authenticated_check_decorator
 from datetime import datetime
+from project.services import send_password_reset_email
 
 @login.user_loader
 def load_user(id):
@@ -51,7 +52,7 @@ def register():
     if user or profile:
       flash("Unable to create account with those credentials.", "warning")
     if not user and not profile:
-      user = User(email=form.email.data, unconfirmed_email=form.email.data, tos=form.tos.data)
+      user = User(email=form.email.data, unconfirmed_email=form.email.data, tos=form.tos.data, marketing=form.marketing.data)
       user.set_password(form.password.data)
       db_add(user)
       group = Group(name=form.username.data)
@@ -125,20 +126,13 @@ def confirm_success():
 @bp.route('/password/forgot/', methods=['GET', 'POST'])
 def password_request():
   form = EmailForm()
-  if form.validate_on_submit():
-    return redirect(url_for('views.password_request_send', email=form.email.data))
-  return render_template("user/password_request.html", title="Forgot Password", form=form)
+  return render_template("user/password_request.html", title="Forgot Password", form=form,)
 
 @bp.route('/password/forgot/<email>')
 def password_request_send(email):
-  user = User.query.filter_by(email=email).first()
-  if user:
-    token = generate_token(email)
-    confirm_url = url_for("views.password_reset_token", token=token, _external=True)
-    html = render_template("email/password_reset.html", confirm_url=confirm_url, unsubscribe=False)
-    subject = "Change Your vfolio Password"
-    send_email([user.email],subject,html)
-  return redirect(url_for('views.password_reset'))
+  send_password_reset_email(email)
+  flash("An email has been sent to reset your password.","info")
+  return redirect(url_for('views.password_request'))
   
 @bp.route('/password/reset/', methods=['GET', 'POST'])
 def password_reset():

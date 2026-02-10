@@ -7,6 +7,7 @@
 
 {% block content %}
 {% from 'macros/settings.html' import item, script %}
+{% from 'macros/form.html' import input, password, showPassword, checkbox, submit with context %}
     <section class="section">
         <div class="container">
             <h1 class="title is-1">Settings</h1>
@@ -25,12 +26,15 @@
                             {{ item(name=group.name, target=group.name) }}
                             {% endfor %}
                         </ul>
+                        <p class="menu-label">Other</p>
+                        <ul class="menu-list">
+                            {{ item(name="Close Account", target="close_account") }}
+                        </ul>
                     </div>
                 </div>
                 {{ script() }}
                 <div class="column targets">
                     <div id="account" class="is-hidden">
-                        {% from 'macros/form.html' import input, password, showPassword, checkbox, submit with context %}
                         <div class='content'>
                             <h4>Change Email</h4>
                             <form action="" method="post" class="block">
@@ -45,20 +49,127 @@
                             <a class="button is-primary" href={{url_for('views.password_request_send', email=current_user.email)}}>Reset Password</a>
                         </div>
                     </div>
+                    <script>
+                        window.handleResponse = function (detail, success) {
+                            if (detail.successful) {
+                                console.log("Success:", detail.xhr.response);
+                                window.flash(success, category='success');
+                            } else {
+                                console.log("Error:", detail.xhr.response);
+                                window.flash('Something went wrong.', category='danger');
+                            };
+                        };
+                    </script>
                     <div id="preferences" class="is-hidden">
-                        <p>Preferences</p>
+                        <div class='content'>
+                            <h4>Marketing Preferences</h4>
+                            <div class="control">
+                                <label class="checkbox">
+                                <input id="marketing" name="marketing" type="checkbox" {% if current_user.marketing %}checked{% endif %}
+                                    hx-patch="{{url_for('users_v1.UserMarketingSwitch')}}"
+                                    hx-include="#csrf_token"
+                                    hx-swap="none"
+                                    hx-on::after-request="window.handleResponse(event.detail, 'Updated marketing preferences.')">
+                                Recieve occassional emails <span class="quiet">(we promise not to spam you)</span>
+                                </label>
+                            </div>
+                        </div>
                     </div>
                     <div id="subscription" class="is-hidden">
-                        <p>Subscription</p>
+                        <div class="content">
+                            <h4>Change Subscription</h4>
+                        </div>
+                        <h4></h4>
                     </div>
-                    <div id="account" class="is-hidden">
-                        <p>Account</p>
-                    </div>
+                    <script>
+                        window.removeUser = function (detail, group, user, email) {
+                            if (detail.successful) {
+                                $("#" + group + " #" + user).remove()
+                            };
+                            window.handleResponse(detail, 'Removed ' + email + ' from ' + group + '.');
+                        };
+                        window.addUser = function (detail, group, email) {
+                            window.handleResponse(detail, 'Invited ' + email + ' to ' + group + '.');
+                        };
+                        window.promoteUser = function (detail, group, user, email) {
+                            window.handleResponse(detail, 'Invited ' + email + ' to be the owner of ' + group + '.');
+                        };
+                    </script>
                     {% for group in current_user.groups %}
                     <div id="{{group.name}}" class="is-hidden">
-                        <p>{{group.name}}</p>
+                        <div class="content">
+                            <h4>Users</h4>
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>User</th>
+                                        <th><abbr title="Remove">Rm</abbr></th>
+                                        <th><abbr title="Make Owner">Own</abbr></th>
+                                    </tr>
+                                </thead>
+                                {% if current_user == group.owner %}
+                                <tfoot>
+                                    <tr id="invite">
+                                        <td colspan="2">Invite</td>
+                                        <td><a class="button is-small"
+                                            hx-on:click="$('#{{group.name}} #invite').hide();$('#{{group.name}} #invite_input').show();"
+                                            ><span class="icon"><i class="fas fa-plus"></i></span></a></td>
+                                    </tr>
+                                    <tr id="invite_input" style="display:none;">
+                                        <form action="" method="post"
+                                            hx-post="{{url_for('profiles_v1.ProfileGroupAdd')}}"
+                                            hx-include="#csrf_token"
+                                            hx-swap="none"
+                                            hx-confirm="Are you sure you wish to invite this user?"
+                                            hx-vals='{"group":"{{group.name}}"}' 
+                                            hx-on::after-request="var input = $('#invite_group_input').val();window.addUser(event.detail, '{{group.name}}', input);$('#{{group.name}} #invite').hide();$('#{{group.name}} #invite_input').show();">
+                                            <td colspan="2">
+                                                <div class="control has-icons-left">
+                                                    <input class="input" id="invite_group_input" maxlength="255" minlength="6" name="email" required="" type="text" value="" placeholder="someone@example.com">
+                                                    <span class="icon is-small is-left">
+                                                        <i class="fas fa-envelope"></i>
+                                                    </span>
+                                                </div></td>
+                                            <td><button class="button is-small" type="submit"><span class="icon"><i class="fas fa-paper-plane"></i></span></button></td>
+                                        </form>
+                                    </tr>
+                                </tfoot>
+                                {% endif %}
+                                <tbody>
+                                    {% for user in group.users %}
+                                    <tr id="{{user.hex}}">
+                                        <td>{% if user == group.owner %}<span class="icon"><i class="fas fa-crown"></i></span> {% endif %}{{user.email}}</td>
+                                        <td><a class="button is-small" {% if user == group.owner or user == current_user %}disabled{% else %}
+                                            hx-post="{{url_for('profiles_v1.ProfileGroupRemove')}}"
+                                            hx-include="#csrf_token"
+                                            hx-swap="none"
+                                            hx-confirm="Are you sure you wish to remove this user?"
+                                            hx-vals='{"user":"{{user.email}}","group":"{{group.name}}"}' 
+                                            hx-on::after-request="window.removeUser(event.detail, '{{group.name}}', '{{user.hex}}', '{{user.email}}')"
+                                            {% endif %}><span class="icon"><i class="fas fa-xmark"></i></span></a></td>
+                                        <td><a class="button is-small" {% if user == group.owner or user == current_user %}disabled{% else %}
+                                            hx-post="{{url_for('profiles_v1.ProfileGroupOwner')}}"
+                                            hx-include="#csrf_token"
+                                            hx-swap="none"
+                                            hx-confirm="Are you sure you wish to make this user the owner of the group? You will no longer be the owner, and this action is irreversible."
+                                            hx-vals='{"user":"{{user.email}}","group":"{{group.name}}"}' 
+                                            hx-on::after-request="window.promoteUser(event.detail, '{{group.name}}', '{{user.hex}}', '{{user.email}}')"
+                                            {% endif %}><span class="icon"><i class="fas fa-crown"></i></span></a></td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                            
+                        </div>
                     </div>
                     {% endfor %}
+                    <div id="close_account" class="is-hidden">
+                        <div class="content">
+                            <h4>Close Account</h4>
+                            <p>To close your account, please get in contact with support.</p>
+                            <a class="button is-primary" href={{url_for('views.support')}}>Contact Support</a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

@@ -72,7 +72,7 @@
           fadeOutFlashes();
       });
 
-      $('ul.flashes li').click(function() {
+      $(document).on('click', 'ul.flashes li', function () {
         $(this).fadeOut('slow', function() {
             $(this).remove();
         });

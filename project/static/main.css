@@ -21119,9 +21119,14 @@ body {
   gap: 0.5rem;
   align-items: end;
   width: min(80%, 768px);
+  pointer-events: none;
+}
+.flashes li {
+  pointer-events: auto;
 }
 .flashes a {
   margin-left: 0.5rem;
+  pointer-events: auto;
 }
 
 @media screen and (max-width: 580px) {
@@ -21249,4 +21254,12 @@ aside {
 }
 .logo span {
   color: var(--bulma-primary);
+}
+
+.quiet {
+  font-size: 0.875em;
+}
+
+table {
+  width: 100%;
 }

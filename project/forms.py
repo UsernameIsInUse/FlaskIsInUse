@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, PasswordField, BooleanField, SelectMultipleField, SelectField, HiddenField, TextAreaField
-from wtforms.validators import DataRequired, Length, ValidationError, EqualTo, Email, Regexp
+from wtforms.validators import DataRequired, Length, ValidationError, EqualTo, Email, Regexp, Optional
 from project.models import User
 from flask_login import current_user
 
@@ -43,6 +43,7 @@ class RegisterForm(FlaskForm):
                             validators=[DataRequired(),
                                         EqualTo('password')])
   tos = BooleanField("Terms of Service", validators=[DataRequired()])
+  marketing = BooleanField("Marketing", validators=[Optional()])
   submit = SubmitField('Register')
 
 class EmailChangeForm(FlaskForm):
@@ -67,3 +68,4 @@ class PasswordChangeForm(FlaskForm):
                             validators=[DataRequired(),
                                         EqualTo('password')])
   submit = SubmitField('Submit')
+  

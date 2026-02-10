@@ -1,0 +1,15 @@
+{% extends "email/base.html" %}
+
+{% block preheader %}You have been invited to a vfolio group!{% endblock %}
+
+{% block content %}
+<p>Hey there, you've been invited to the {{group}} group on vfolio.</p>
+<p>Please follow this link to accept the invite:</p>
+{% endblock %}
+
+{% block buttonLink %}{{ confirm_url }}{% endblock %}
+{% block buttonText %}Accept Invite{% endblock %}
+
+{% block content2 %}
+<p>If you don't know why you've been invited or think this was a mistake, you can safely ignore this email.</p>
+{% endblock %}

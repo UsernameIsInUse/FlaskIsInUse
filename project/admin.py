@@ -27,7 +27,7 @@ class CustomBaseModelView(ModelView):
     return login_redirect()
   
 class UserView(CustomBaseModelView):
-  column_list = ['email', 'confirmed', 'roles', 'profile', 'groups', 'date_created']
+  column_list = ['email', 'confirmed', 'marketing', 'roles', 'profile', 'groups', 'date_created']
   column_searchable_list = ['email']
   form_columns = ['email', 'confirmed']
   can_delete = False

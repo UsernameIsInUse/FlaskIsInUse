@@ -22,9 +22,14 @@ body {
   gap:0.5rem;
   align-items: end;
   width: min(80%, 768px);
+  pointer-events: none;
 
+  li {
+    pointer-events: auto;
+  }
   a {
     margin-left: 0.5rem;
+    pointer-events: auto;
   }
 }
 
@@ -165,4 +170,12 @@ aside {
     color: var(--bulma-primary);
   }
 
+}
+
+.quiet {
+  font-size:.875em;
+}
+
+table {
+  width:100%;
 }
