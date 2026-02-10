@@ -77,9 +77,11 @@
                     </div>
                     <div id="subscription" class="is-hidden">
                         <div class="content">
-                            <h4>Change Subscription</h4>
+                            <h4>Manage Subscription</h4>
+                            {% if current_user.is_pro %}
+                            <p>Subscribed</p>
+                            {% endif %}
                         </div>
-                        <h4></h4>
                     </div>
                     <script>
                         window.removeUser = function (detail, group, user, email) {

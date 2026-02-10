@@ -2,6 +2,7 @@ from flask import Flask
 from config import Config
 from project.extensions import flashy, ipban, csrf, db, migrate, admin, login, squeeze, toolbar, authorize, mail, api
 import flask_noai
+from flask_cors import CORS
 
 def create_app(config_class=Config):
   app = Flask(__name__)
@@ -21,6 +22,10 @@ def create_app(config_class=Config):
   authorize.init_app(app)
   mail.init_app(app)
   api.init_app(app)
+  CORS(app,resources={
+    r"/subscription/*": {"origins": "https://checkout.stripe.com"},
+    r"/settings": {"origins": "https://checkout.stripe.com"}
+  })
   
   # Additional configurations
   ipban.load_nuisances()

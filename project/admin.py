@@ -27,9 +27,9 @@ class CustomBaseModelView(ModelView):
     return login_redirect()
   
 class UserView(CustomBaseModelView):
-  column_list = ['email', 'confirmed', 'marketing', 'roles', 'profile', 'groups', 'date_created']
+  column_list = ['email', 'is_pro', 'confirmed', 'marketing', 'roles', 'profile', 'groups', 'date_created']
   column_searchable_list = ['email']
-  form_columns = ['email', 'confirmed']
+  form_columns = ['email', 'confirmed', 'pro_override']
   can_delete = False
 
 class ProfileView(CustomBaseModelView):
@@ -48,6 +48,12 @@ class GroupView(CustomBaseModelView):
   can_edit = False
   can_delete = False
   
+class StripeView(CustomBaseModelView):
+  column_list = ['user','stripe_customer_id','stripe_subscription_id','active']
+  column_filters = ['active']
+  form_columns = ['active']
+  can_delete = False
+  
 class LogView(CustomBaseModelView):
   column_list = ['user', 'description', 'date_created']
   column_searchable_list = ['description']
@@ -56,4 +62,6 @@ admin.add_view(UserView(User, db.session, category="Users"))
 admin.add_view(ProfileView(Profile, db.session, category="Users"))
 admin.add_view(RoleView(Role, db.session, category="Users"))
 admin.add_view(GroupView(Group, db.session, category="Users"))
+admin.add_view(StripeView(StripeCustomer, db.session, category="Users"))
 admin.add_view(LogView(Log, db.session, category="Utils"))
+

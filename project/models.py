@@ -1,5 +1,6 @@
 from project.extensions import db
 from sqlalchemy.sql import func
+from sqlalchemy.orm import Mapped, mapped_column
 from project.utils import log
 from project.access_control import is_admin
 from flask_login import UserMixin
@@ -7,30 +8,36 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import json
 from flask import url_for
 from flask_authorize import PermissionsMixin, AllowancesMixin
+from project.stripe import stripe
+from datetime import datetime, timezone
+from typing import List, Optional
 
 class User(UserMixin, db.Model):
   __tablename__ = 'users'
-  id = db.Column(db.Integer, primary_key=True)
-  date_created = db.Column(db.DateTime, nullable=True, default=func.now())
-  logs = db.relationship('Log', backref='user', lazy=True)
+  id: Mapped[int] = mapped_column(primary_key=True)
+  date_created: Mapped[datetime] = mapped_column(default=lambda: datetime.now(timezone.utc))
+  logs: Mapped[List["Log"]] = db.relationship(backref='user', lazy=True)
   
   # local auth
-  email = db.Column(db.String(255), unique=True, nullable=False)
-  hashed_pass = db.Column(db.String(255), nullable = False)
+  email: Mapped[str] = mapped_column(db.String(255), unique=True)
+  hashed_pass: Mapped[str] = mapped_column(db.String(255))
+  unconfirmed_email: Mapped[Optional[str]] = mapped_column(db.String(255))
+  confirmed: Mapped[bool] = mapped_column(default=False)
+  date_confirmed: Mapped[Optional[datetime]]
   
   # oauth
   
   # permissions
-  role_links = db.relationship("UserRole", back_populates="user")
-  group_links = db.relationship("UserGroup", back_populates="user")
+  role_links: Mapped[List["UserRole"]] = db.relationship(back_populates="user")
+  group_links: Mapped[List["UserGroup"]] = db.relationship(back_populates="user")
   
   # user data / settings
-  unconfirmed_email = db.Column(db.String(255), nullable=True)
-  confirmed = db.Column(db.Boolean, default=False)
-  date_confirmed = db.Column(db.DateTime, nullable=True)
-  tos = db.Column(db.Boolean, default=True)
-  marketing = db.Column(db.Boolean, nullable=True)
+  tos: Mapped[bool] = mapped_column(default=True)
+  marketing: Mapped[Optional[bool]]
   
+  # subscription
+  stripe_customers: Mapped[List["StripeCustomer"]] = db.relationship(backref='user', lazy=True)
+  pro_override: Mapped[bool] = mapped_column(default=False)
   
   def __repr__(self):
     return f"{self.email}"
@@ -72,14 +79,30 @@ class User(UserMixin, db.Model):
   @property
   def hex(self):
     return self.email.encode("utf-8").hex()
+  
+  @property
+  def stripe(self):
+    try:
+      return self.stripe_customers[0]
+    except:
+      return False
+  
+  @property
+  def is_pro(self) -> bool:
+    try:
+      if self.pro_override or self.stripe.is_active:
+        return True
+      return False
+    except:
+      return False
 
 class Role(db.Model, AllowancesMixin):
   __tablename__ = 'roles'
   __allowances__ = {}
-  id = db.Column(db.Integer, primary_key=True)
-  name = db.Column(db.String(255), unique=True, nullable=False)
-  date_created = db.Column(db.DateTime, nullable=False, default=func.now()) 
-  user_links = db.relationship("UserRole", back_populates="role")
+  id: Mapped[int] = mapped_column(primary_key=True)
+  name: Mapped[str] = mapped_column(db.String(255), unique=True)
+  date_created: Mapped[datetime] = mapped_column(default=lambda: datetime.now(timezone.utc))
+  user_links: Mapped[List["UserRole"]] = db.relationship(back_populates="role")
   
   def __repr__(self):
     return f"{self.name}"
@@ -90,10 +113,10 @@ class Role(db.Model, AllowancesMixin):
   
 class Group(db.Model):
   __tablename__ = 'groups'
-  id = db.Column(db.Integer, primary_key=True)
-  name = db.Column(db.String(255), unique=True, nullable=False)
-  date_created = db.Column(db.DateTime, nullable=False, default=func.now()) 
-  user_links = db.relationship("UserGroup", back_populates="group")
+  id: Mapped[int] = mapped_column(primary_key=True)
+  name: Mapped[str] = mapped_column(db.String(255), unique=True)
+  date_created: Mapped[datetime] = mapped_column(default=lambda: datetime.now(timezone.utc))
+  user_links: Mapped[List["UserGroup"]] = db.relationship("UserGroup", back_populates="group")
   
   def __repr__(self):
     return f"{self.name}"
@@ -112,24 +135,24 @@ class Group(db.Model):
   
 class UserRole(db.Model):
   __tablename__ = 'user_roles'
-  id = db.Column(db.Integer, primary_key=True)
-  user_id = db.Column(db.ForeignKey("users.id"), nullable=False)
-  role_id = db.Column(db.ForeignKey("roles.id"), nullable=False)
-  user = db.relationship("User", back_populates="role_links")
-  role = db.relationship("Role", back_populates="user_links")
-  date_created = db.Column(db.DateTime, nullable=False, default=func.now())
+  id: Mapped[int] = mapped_column(primary_key=True)
+  user_id: Mapped[int] = mapped_column(db.ForeignKey("users.id"))
+  role_id: Mapped[int] = mapped_column(db.ForeignKey("roles.id"))
+  user: Mapped["User"] = db.relationship(back_populates="role_links")
+  role: Mapped["Role"] = db.relationship(back_populates="user_links")
+  date_created: Mapped[datetime] = mapped_column(default=lambda: datetime.now(timezone.utc))
   
   def __repr__(self):
     return f"{self.user} - {self.role}"
 
 class UserGroup(db.Model):
   __tablename__ = 'user_groups'
-  id = db.Column(db.Integer, primary_key=True)
-  user_id = db.Column(db.ForeignKey("users.id"), nullable=False)
-  group_id = db.Column(db.ForeignKey("groups.id"), nullable=False)
-  user = db.relationship("User", back_populates="group_links")
-  group = db.relationship("Group", back_populates="user_links")
-  date_created = db.Column(db.DateTime, nullable=False, default=func.now())
+  id: Mapped[int] = mapped_column(primary_key=True)
+  user_id: Mapped[int] = mapped_column(db.ForeignKey("users.id"))
+  group_id: Mapped[int] = mapped_column(db.ForeignKey("groups.id"))
+  user: Mapped["User"] = db.relationship(back_populates="group_links")
+  group: Mapped["Group"] = db.relationship(back_populates="user_links")
+  date_created: Mapped[datetime] = mapped_column(default=lambda: datetime.now(timezone.utc))
   
   def __repr__(self):
     return f"{self.user} - {self.group}"
@@ -142,9 +165,9 @@ class Profile(db.Model, PermissionsMixin):
         group=['read', 'update'],
         other=['read']
     )
-  id = db.Column(db.Integer, primary_key=True)
-  username = db.Column(db.String(64), unique=True, nullable=False)
-  date_created = db.Column(db.DateTime, nullable=False, default=func.now())
+  id: Mapped[int] = mapped_column(primary_key=True)
+  username: Mapped[str] = mapped_column(db.String(64), unique=True)
+  date_created: Mapped[datetime] = mapped_column(default=lambda: datetime.now(timezone.utc))
   
   # Other profile data
   
@@ -158,14 +181,57 @@ class Profile(db.Model, PermissionsMixin):
   @property
   def url(self) -> str:
     return url_for('views.profile', username=self.username)
+  
+class StripeCustomer(db.Model):
+  __tablename__ = "stripe_customers"
+  id: Mapped[int] = mapped_column(primary_key=True)
+  user_id: Mapped[int] = mapped_column(db.ForeignKey('users.id'))
+  stripe_customer_id: Mapped[str] = mapped_column(db.String(255))
+  stripe_subscription_id: Mapped[str] = mapped_column(db.String(255))
+  active: Mapped[bool] = mapped_column(default=False)
+  date_created: Mapped[datetime] = mapped_column(default=lambda: datetime.now(timezone.utc))
+  
+  def __repr__(self):
+    return f"{self.id}"
+
+  @property
+  def get_subscription(self):
+    try:
+      return stripe.Subscription.retrieve(self.stripe_subscription_id)
+    except:
+      return False
+
+  @property
+  def get_customer(self):
+    try:
+      return stripe.Customer.retrieve(self.stripe_customer_id)
+    except:
+        return False
+
+  @property
+  def get_product(self):
+    try:
+      return stripe.Product.retrieve(self.get_subscription.plan.product)
+    except:
+      return False
+  
+  @property
+  def is_active(self) -> bool:
+    try:
+      if self.get_subscription.status == "active":
+        return True
+      return False
+    except:
+      return False
+
 
 class Log(db.Model):
   __tablename__ = 'logs'
-  id = db.Column(db.Integer, primary_key=True)
-  user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
-  data = db.Column(db.Text, nullable=True)
-  description = db.Column(db.Text, nullable=True)
-  date_created = db.Column(db.DateTime, nullable=False, default=func.now()) 
+  id: Mapped[int] = mapped_column(primary_key=True)
+  user_id: Mapped[Optional[int]] = mapped_column(db.ForeignKey('users.id'))
+  data: Mapped[Optional[str]] = mapped_column(db.Text)
+  description: Mapped[Optional[str]] = mapped_column(db.Text)
+  date_created: Mapped[datetime] = mapped_column(default=lambda: datetime.now(timezone.utc))
   
   def __repr__(self):
     return f"{self.id}"

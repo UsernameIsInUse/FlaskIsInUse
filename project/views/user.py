@@ -24,7 +24,6 @@ def user_settings():
       html = render_template("email/email_change.html", unsubscribe=False)
       subject = "Your vfolio Email Has Been Changed"
       send_email([current_user.email],subject,html)
-      
       current_user.unconfirmed_email = email_form.email.data
       current_user.confirmed = False
       current_user.date_confirmed = None
@@ -32,7 +31,7 @@ def user_settings():
       log(user=current_user, request=request, description='Saved new email, needs re-confirmation')
       return redirect(url_for('views.confirm'))
   email_form = EmailChangeForm()
-  return render_template('user/settings.html', email_form=email_form)
+  return render_template('user/settings.html', email_form=email_form, subscription=current_user.stripe)
 
 @bp.route('/settings/g/<group>/invite/<token>')
 @login_required
