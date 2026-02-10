@@ -9,7 +9,7 @@ from project import db
 from flask_flashy import flash
 
 @bp.route('/settings/', methods=['GET', 'POST'])
-@fresh_login_required
+@login_required
 def user_settings():
   email_form = EmailChangeForm()
   if email_form.validate_on_submit():

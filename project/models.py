@@ -17,9 +17,9 @@ class User(UserMixin, db.Model):
   id: Mapped[int] = mapped_column(primary_key=True)
   date_created: Mapped[datetime] = mapped_column(default=lambda: datetime.now(timezone.utc))
   logs: Mapped[List["Log"]] = db.relationship(backref='user', lazy=True)
+  email: Mapped[str] = mapped_column(db.String(255), unique=True)
   
   # local auth
-  email: Mapped[str] = mapped_column(db.String(255), unique=True)
   hashed_pass: Mapped[str] = mapped_column(db.String(255))
   unconfirmed_email: Mapped[Optional[str]] = mapped_column(db.String(255))
   confirmed: Mapped[bool] = mapped_column(default=False)

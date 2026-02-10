@@ -5,17 +5,22 @@ from flask_flashy import flash
 from project.utils import log
 from project.stripe import stripe, stripe_keys
 from project.models import User, StripeCustomer
-from project.extensions import db
-  
+from project.extensions import db, csrf
+
+@bp.route('/subscription/', methods=['POST','GET'])
+@login_required
+def subscription():
+  return redirect(url_for('views.user_settings', page="subscription"))
+
 @bp.route('/subscription/success', methods=['POST','GET'])
 @login_required
-def subscriptionSuccess():
-  return redirect(url_for('user_settings', page="subscription"))
+def subscription_success():
+  return redirect(url_for('views.user_settings', page="subscription"))
 
 @bp.route('/subscription/cancel', methods=['POST','GET'])
 @login_required
-def subscriptionCancel():
-  return redirect(url_for('profileSubscription', page="subscription"))
+def subscription_cancel():
+  return redirect(url_for('views.user_settings', page="subscription"))
 
 @bp.route("/subscription/config")
 @login_required
@@ -27,9 +32,7 @@ def get_publishable_key():
 @login_required
 def create_checkout_session(term):
   log(user=current_user, request=request, description='Created stripe checkout session')
-  domain_url = "https://vfolio.me/"
   stripe.api_key = stripe_keys["secret_key"]
-  
   if term == "m":
     line_items=[
         {
@@ -46,17 +49,15 @@ def create_checkout_session(term):
       ]
   else:
     abort(400)
-    
   customer = None
   if current_user.stripe:
     customer = current_user.stripe.stripe_customer_id
-
   try:
     checkout_session = stripe.checkout.Session.create(
       client_reference_id=current_user.id,
       customer=customer,
-      success_url=domain_url + "subscription/success?session_id={CHECKOUT_SESSION_ID}",
-      cancel_url=domain_url + "subscription/cancel",
+      success_url = url_for('views.subscription_success', _external=True) + "?session_id={CHECKOUT_SESSION_ID}",
+      cancel_url = url_for('views.subscription_cancel', _external=True),
       mode="subscription",
       line_items=line_items
     )
@@ -66,10 +67,10 @@ def create_checkout_session(term):
   
 
 @bp.route("/subscription/webhook", methods=["POST"])
+@csrf.exempt
 def stripe_webhook():
   payload = request.data
   sig_header = request.headers.get("Stripe-Signature")
-
   try:
     event = stripe.Webhook.construct_event(
       payload, sig_header, stripe_keys["endpoint_secret"]
@@ -122,8 +123,8 @@ def create_portal_session():
   stripe.api_key = stripe_keys["secret_key"]
   try:
     portal_session = stripe.billing_portal.Session.create(
-      customer=current_user.stripe().stripe_customer_id,
-      return_url=f"http://vfolio.me/settings?page=subscription"
+      customer = current_user.stripe.stripe_customer_id,
+      return_url = url_for('views.user_settings', _external=True)
     )
     log(user=current_user, request=request, description='Created a stripe billing portal session')
     return jsonify({'url': portal_session.url})

@@ -1,7 +1,10 @@
 {% extends 'base.html' %}
 
 {% block pre %}{% endblock %}
-{% block head %}{% endblock %}
+{% block head %}
+<script src="https://js.stripe.com/v3/"></script>
+<script type="text/javascript" src="{{url_for('static', filename='js/stripe.js')}}"></script>
+{% endblock %}
 
 {% block title %}Settings | {% endblock %}
 
@@ -78,8 +81,20 @@
                     <div id="subscription" class="is-hidden">
                         <div class="content">
                             <h4>Manage Subscription</h4>
-                            {% if current_user.is_pro %}
-                            <p>Subscribed</p>
+                            {% if not current_user.pro_override %}
+                                {% if current_user.stripe%}
+                                    {% if current_user.stripe.active %}
+                                    <a class="credit portal">Manage Subscription</a>
+                                    {% else %}
+                                    <a class="credit portal">View Invoice History</a>
+                                    {% endif %}    
+                                {% endif %}
+                                {% if not current_user.stripe or not current_user.stripe.active %}
+                                <a style="cursor:pointer;" class="credit monthly">Get Started - Monthly</a>
+                                <a style="cursor:pointer;" class="credit yearly">Get Started - Yearly</a>
+                                {% endif %}
+                            {% else %}
+                            <p>Subscribed for free! Congrats!</p>
                             {% endif %}
                         </div>
                     </div>
