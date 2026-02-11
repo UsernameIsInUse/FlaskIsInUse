@@ -1,7 +1,11 @@
 {% extends 'base.html' %}
 
-{% block pre %}{% endblock %}
-{% block head %}{% endblock %}
+{% block pre %}
+<link rel="preconnect" href="https://challenges.cloudflare.com">
+{% endblock %}
+{% block head %}
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" defer></script>
+{% endblock %}
 
 {% block title %}Register | {% endblock %}
 
@@ -40,6 +44,37 @@
                     </label>
                   </div>
                 </div>
+
+                <div class="cft field">
+                  <div id="ts-container" class="cft"></div>
+                </div>
+
+                <script>
+                  $(document).ready(function() {
+                    let widgetId = null;
+                    let solved = false;
+
+                    widgetId = turnstile.render('#ts-container', {
+                      sitekey: '{{ts_site_key}}',
+                      execution: 'execute',
+                      appearance: 'always',
+                      callback: function (token) {
+                        solved = true;
+                        console.log('Turnstile success:', token);
+                      },
+                      'error-callback': function () {
+                        console.log('Turnstile error');
+                        $(".cft").css("height","100%");
+                      }
+                    })
+                    turnstile.execute(widgetId);
+                    setTimeout(() => {
+                      if (!solved) {
+                        $(".cft").css("height","100%");
+                      }
+                    }, 2000);
+                  });
+                </script>
 
                 {{ submit('submit', 'Register', 'primary') }}
 

@@ -23,3 +23,11 @@ password reset - flask-mail, itsdangerous
 
 expand and customize bulma
 htmx
+
+
+
+make subscription prettier
+sidebar/pages/etc
+dark/light mode
+oauth
+turnstyle integration on register page

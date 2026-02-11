@@ -1,14 +1,15 @@
 from project import login, db
 from project.views import bp
-from flask import render_template, redirect, url_for, request
+from flask import render_template, redirect, url_for, request, current_app
 from flask_login import login_user, logout_user, current_user, login_required
 from flask_flashy import flash
 from project.models import User, Profile, Group, UserGroup
 from project.utils import log, db_add, send_email
 from project.forms import LoginForm, RegisterForm, EmailChangeForm, EmailForm, PasswordChangeForm
-from project.access_control import generate_token, confirm_token, confirmed_check_decorator, not_confirmed_check_decorator, not_authenticated_check_decorator
+from project.access_control import generate_token, confirm_token, confirmed_check_decorator, not_confirmed_check_decorator, not_authenticated_check_decorator, validate_turnstyle
 from datetime import datetime
 from project.services import send_password_reset_email
+
 
 @login.user_loader
 def load_user(id):
@@ -47,6 +48,16 @@ def login():
 def register():
   form = RegisterForm()
   if form.validate_on_submit():
+    token = request.form.get('cf-turnstile-response')
+    remoteip = request.headers.get('CF-Connecting-IP') or \
+               request.headers.get('X-Forwarded-For') or \
+               request.remote_addr
+    validation = validate_turnstyle(token, current_app.config["TURNSTILE_SECRET_KEY"], remoteip=remoteip)
+    if not validation['success']:
+      flash('Something went wrong, please try again.', category='danger')
+      log(request=request, description='Failed register attempt via verification fail')
+      return render_template('user/register.html', form=form, ts_site_key=current_app.config["TURNSTILE_SITE_KEY"])
+    
     user = User.query.filter_by(email=form.email.data).first()
     profile = Profile.query.filter_by(username=form.username.data).first()
     if user or profile:
@@ -65,7 +76,7 @@ def register():
       login_user(user)
       return redirect(url_for('views.confirm'))
   
-  return render_template('user/register.html', form=form)
+  return render_template('user/register.html', form=form, ts_site_key=current_app.config["TURNSTILE_SITE_KEY"])
       
 @bp.route('/logout')
 @login_required

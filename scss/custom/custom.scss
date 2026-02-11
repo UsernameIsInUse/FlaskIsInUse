@@ -179,3 +179,9 @@ aside {
 table {
   width:100%;
 }
+
+.cft {
+  height: 0;
+  overflow: hidden;
+  transition: height 250ms ease;
+}

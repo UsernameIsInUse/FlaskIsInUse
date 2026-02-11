@@ -13,7 +13,6 @@
   @include setup.setup-theme;
 }
 
-/*
 // prefers-color-scheme: light
 @include cv.system-theme($name: "light") {
   @include light.light-theme;
@@ -23,7 +22,6 @@
 @include cv.system-theme($name: "dark") {
   @include dark.dark-theme;
 }
-*/
 
 // :root, [data-theme=light], .theme-light
 @include cv.bulma-theme($name: "light") {

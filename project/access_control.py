@@ -5,6 +5,8 @@ from project import authorize
 from project.utils import get_group
 from functools import wraps
 from itsdangerous import URLSafeTimedSerializer
+from requests import post, RequestException
+from project.utils import log
 
 def is_admin(user=current_user):
   return authorize.has_role('Admin')(user)
@@ -97,3 +99,22 @@ def confirm_token(token:str, expiration:int=3600) -> str:
     return email
   except Exception:
     return False
+
+def validate_turnstyle(token, secret, remoteip=None):
+  url = 'https://challenges.cloudflare.com/turnstile/v0/siteverify'
+  data = {
+    'secret': secret,
+    'response': token
+  }
+  if remoteip:
+    data['remoteip'] = remoteip
+  
+  try:
+    response = post(url, data=data, timeout=10)
+    response.raise_for_status()
+    print(response.json())
+    return response.json()
+  
+  except RequestException as e:
+    log(description='Turnstile validation error: {e}')
+    return {'success':False, 'error-codes':['internal-error']}
