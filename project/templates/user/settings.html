@@ -11,6 +11,7 @@
 {% block content %}
 {% from 'macros/settings.html' import item, script %}
 {% from 'macros/form.html' import input, password, showPassword, checkbox, submit with context %}
+{% from 'macros/oauth.html' import oauths, google_link, apple_link with context %}
     <section class="section">
         <div class="container">
             <h1 class="title is-1">Settings</h1>
@@ -50,6 +51,15 @@
                             <hr>
                             <h4>Change Password</h4>
                             <a class="button is-primary" href={{url_for('views.password_request_send', email=current_user.email)}}>Reset Password</a>
+                            <hr>
+                            <h4>One-Click Sign In</h4>
+                            <div class="buttons">
+                                {% if current_user.google %}
+                                {{google_link('Disconnect', url_for('views.login_oauth', provider='google', disconnect='true'))}}
+                                {% else %}
+                                {{google_link('Connect', url_for('views.login_oauth', provider='google', connect='true'))}}
+                                {% endif %}
+                            </div>
                         </div>
                     </div>
                     <script>

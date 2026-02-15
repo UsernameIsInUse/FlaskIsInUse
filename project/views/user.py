@@ -5,6 +5,7 @@ from project.access_control import confirm_token
 from project.utils import send_email, log
 from project.forms import EmailChangeForm
 from project.models import User, Group, UserGroup
+from project.services import send_email_changed_email
 from project import db
 from flask_flashy import flash
 
@@ -21,9 +22,7 @@ def user_settings():
       flash('Something went wrong with your request, please try again.', 'warning')
       log(user=current_user, request=request, description='Failed email change attempt')
     else:
-      html = render_template("email/email_change.html", unsubscribe=False)
-      subject = "Your vfolio Email Has Been Changed"
-      send_email([current_user.email],subject,html)
+      send_email_changed_email(current_user.email)
       current_user.unconfirmed_email = email_form.email.data
       current_user.confirmed = False
       current_user.date_confirmed = None

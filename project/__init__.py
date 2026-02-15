@@ -1,6 +1,6 @@
 from flask import Flask
 from config import Config
-from project.extensions import flashy, ipban, csrf, db, migrate, admin, login, squeeze, toolbar, authorize, mail, api
+from project.extensions import flashy, ipban, csrf, db, migrate, admin, login, squeeze, toolbar, authorize, mail, api, oauth
 import flask_noai
 from flask_cors import CORS
 
@@ -26,6 +26,7 @@ def create_app(config_class=Config):
     r"/subscription/*": {"origins": "https://checkout.stripe.com"},
     r"/settings": {"origins": "https://checkout.stripe.com"}
   })
+  oauth.init_app(app)
   
   # Additional configurations
   ipban.load_nuisances()
@@ -33,6 +34,10 @@ def create_app(config_class=Config):
   login.login_view = 'login'
   login.session_protection = "basic"
   login.login_view = "views.login"
+  if app.debug:
+    app.config.update(
+      session_cookie_secure=False
+    )
   
   # Register blueprints
   from project.views import bp as views_bp
@@ -44,6 +49,16 @@ def create_app(config_class=Config):
   from project.apis.v1 import bps as api_bps
   for api_bp in api_bps:
     api.register_blueprint(api_bp)
+    
+  # Register OAuth
+  
+  oauth.register(
+    name="google",
+    client_id=app.config["GOOGLE_CLIENT_ID"],
+    client_secret=app.config["GOOGLE_CLIENT_SECRET"],
+    server_metadata_url="https://accounts.google.com/.well-known/openid-configuration",
+    client_kwargs={"scope": "openid email profile"},
+  )
   
   # Inject common variables
   @app.context_processor

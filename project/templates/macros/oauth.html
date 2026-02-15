@@ -1,0 +1,93 @@
+{% macro google_button(pre="Sign In") %}
+<button id="submit" name="submit" type="submit" value="google" class="button is-oauth show-local">
+  <span class="icon is-small">
+    <svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" xmlns:xlink="http://www.w3.org/1999/xlink" style="display: block;">
+      <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path>
+      <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path>
+      <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path>
+      <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path>
+      <path fill="none" d="M0 0h48v48H0z"></path>
+    </svg>
+  </span>
+  <span>{{ pre }} with Google</span>
+</button>
+{% endmacro %}
+
+{% macro google_link(pre="Sign In", href="") %}
+<a href="{{ href }}" class="button is-oauth show-local">
+  <span class="icon is-small">
+    <svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" xmlns:xlink="http://www.w3.org/1999/xlink" style="display: block;">
+      <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path>
+      <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path>
+      <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path>
+      <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path>
+      <path fill="none" d="M0 0h48v48H0z"></path>
+    </svg>
+  </span>
+  <span>{{ pre }} with Google</span>
+</a>
+{% endmacro %}
+
+{% macro local_button(pre="Sign In") %}
+<button id="local_button" class="button is-oauth" type="button" value="local" onclick="insertLocalAuth()">
+  <span class="icon">
+    <svg class="has-color-inherit" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--!Font Awesome Free v7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.--><path d="M336 352c97.2 0 176-78.8 176-176S433.2 0 336 0 160 78.8 160 176c0 18.7 2.9 36.8 8.3 53.7L7 391c-4.5 4.5-7 10.6-7 17l0 80c0 13.3 10.7 24 24 24l80 0c13.3 0 24-10.7 24-24l0-40 40 0c13.3 0 24-10.7 24-24l0-40 40 0c6.4 0 12.5-2.5 17-7l33.3-33.3c16.9 5.4 35 8.3 53.7 8.3zM376 96a40 40 0 1 1 0 80 40 40 0 1 1 0-80z"/></svg>
+  </span>
+  <span>{{ pre }} with Password</span>
+</button>
+<script>
+  function insertLocalAuth() {
+    $("#email").prop("required", true);
+    $("#password").prop("required", true);
+    $("#password2").prop("required", true);
+    const email = $("#email_form").html();
+    const password = $("#password_form").html();
+    $("#email_form_placement").replaceWith(email);
+    $("#password_form_placement").replaceWith(password);
+    $('#local_button').removeAttr("onclick");
+    $('.show-local').css({'display':'none'});
+    $('#local_button').attr('type', 'submit');
+    $('#local_button').attr('name', 'submit');
+  }
+</script>
+{% endmacro %}
+
+{% macro google(pre="Sign In") %}
+<div class="field">
+  <div class="control">
+    {{ google_button(pre=pre) }}
+  </div>
+</div>
+{% endmacro %}
+
+{% macro local(pre="Sign In") %}
+<div class="field">
+  <div class="control">
+    {{ local_button(pre=pre) }}
+  </div>
+</div>
+{% endmacro %}
+
+{% macro all(pre="Sign In") %}
+<div class="field">
+  <div class="control">
+    <div class="buttons">
+      {{ google_button(pre=pre) }}
+      <span class="is-hidden-mobile show-local">
+        or
+      </span>
+      {{ local_button(pre=pre) }}
+    </div>
+  </div>
+</div>
+{% endmacro %}
+
+{% macro oauths(pre="Sign In") %}
+<div class="field">
+  <div class="control">
+    <div class="buttons">
+      {{ google_button(pre=pre) }}
+    </div>
+  </div>
+</div>
+{% endmacro %}

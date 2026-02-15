@@ -96,7 +96,7 @@ def reset_database(dev=False) -> bool:
   
 def dev_database() -> bool:
   from project.models import User, Profile, Group, UserGroup, Role, UserRole
-  user = User(email=environ['DEV_EMAIL'], unconfirmed_email=environ['DEV_EMAIL'])
+  user = User(email=environ['DEV_EMAIL'], confirmed=True)
   user.set_password(environ['DEV_PASS'])
   db_add(user)
   group = Group(name=environ["DEV_USER"])

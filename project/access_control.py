@@ -65,9 +65,19 @@ def not_authenticated_check_decorator(f):
     return f(*args, **kwargs)
   return decorated_function
 
-def login_redirect(next=True):
-  flash("You must be logged in to access this page.", "warning")
-  return redirect(url_for('views.login', next=request.full_path))
+def login_redirect(next=True, flash_text="You must be logged in to access this page.", color="warning"):
+  flash(flash_text, color)
+  if next:
+    return redirect(url_for('views.login', next=request.full_path))
+  else:
+    return redirect(url_for('views.login'))
+
+def register_redirect(next=True, flash_text="You must be logged in to access this page.", color="warning"):
+  flash(flash_text, color)
+  if next:
+    return redirect(url_for('views.register', next=request.full_path))
+  else:
+    return redirect(url_for('views.register'))
 
 def generate_token(email:str) -> str:
   """Generates a secure URLSafe Timed Serializer token for emails.
@@ -112,7 +122,6 @@ def validate_turnstyle(token, secret, remoteip=None):
   try:
     response = post(url, data=data, timeout=10)
     response.raise_for_status()
-    print(response.json())
     return response.json()
   
   except RequestException as e:

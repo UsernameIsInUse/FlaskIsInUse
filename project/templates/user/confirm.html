@@ -13,6 +13,7 @@ hide
 
 {% block content %}
 <section class="section">
+  <input hidden hx-post={{url_for('users_v1.UserSendEmailConfirmation')}} hx-include="#csrf_token" hx-swap="none" hx-trigger="load">
   {% from 'macros/form.html' import input, submit with context %}
   <div class="container">
     <h1 class="title is-1">Confirm your Email</h1>

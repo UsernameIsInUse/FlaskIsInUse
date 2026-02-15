@@ -10,22 +10,19 @@
 {% block title %}Register | {% endblock %}
 
 {% block content %}
-    {% from 'macros/form.html' import input, password, showPassword, checkbox, submit with context %}
+    {% from 'macros/form.html' import input, password, showPassword, checkbox, submit, cft with context %}
+    {% from 'macros/oauth.html' import all %}
     <section class="section">
         <div class="container">
-            <h1 class="title is-1">Register an Account</h1>
+            <h1 class="title is-1">Sign Up</h1>
             <form action="" method="post" class="block">
                 {{ form.hidden_tag() }}
 
-                {{ input(form,'email') }}
+                <span id="email_form_placement"></span>
 
                 {{ input(form,'username') }}
 
-                {{ password(form,'password') }}
-
-                {{ password(form,'password2') }}
-
-                {{ showPassword() }}
+                <span id="password_form_placement"></span>
 
                 <div class="field">
                   <div class="control">
@@ -45,41 +42,31 @@
                   </div>
                 </div>
 
-                <div class="cft field">
-                  <div id="ts-container" class="cft"></div>
+                <div class="field" style="width:0;opacity:0;display:table-column;">
+                  <div class="control">
+                    <label class="checkbox">
+                      <input id="phone" name="phone" type="checkbox" checked>
+                      If you are a person, do not uncheck this.</span>
+                    </label>
+                  </div>
                 </div>
 
-                <script>
-                  $(document).ready(function() {
-                    let widgetId = null;
-                    let solved = false;
+                {{ cft() }}
 
-                    widgetId = turnstile.render('#ts-container', {
-                      sitekey: '{{ts_site_key}}',
-                      execution: 'execute',
-                      appearance: 'always',
-                      callback: function (token) {
-                        solved = true;
-                        console.log('Turnstile success:', token);
-                      },
-                      'error-callback': function () {
-                        console.log('Turnstile error');
-                        $(".cft").css("height","100%");
-                      }
-                    })
-                    turnstile.execute(widgetId);
-                    setTimeout(() => {
-                      if (!solved) {
-                        $(".cft").css("height","100%");
-                      }
-                    }, 2000);
-                  });
-                </script>
-
-                {{ submit('submit', 'Register', 'primary') }}
+                {{ all("Sign Up") }}
 
             </form>
             <p><a href='{{url_for("views.login")}}' class="quiet">Already have an account? Login instead!</a></p>
         </div>
     </section>
+    <div style="display:none;">
+      <span id="email_form">
+        {{ input(form,'email') }}
+      </span>
+      <span id="password_form">
+        {{ password(form,'password') }}
+        {{ password(form,'password2') }}
+        {{ showPassword() }}
+      </span>
+    </div>
 {% endblock %}

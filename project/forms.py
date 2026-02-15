@@ -3,55 +3,43 @@ from wtforms import StringField, SubmitField, PasswordField, BooleanField, Selec
 from wtforms.validators import DataRequired, Length, ValidationError, EqualTo, Email, Regexp, Optional
 from project.models import User
 from flask_login import current_user
-
-class Unique(object):
-  def __init__(self, model, field, message='Email must not be in use'):
-    self.model = model
-    self.field = field
-
-  def __call__(self, form, field):
-    if not field.raw_data:
-      check = self.model.query.filter(self.field == field.data).first()
-      if check:
-        raise ValidationError(self.message)
+from flask import request
 
 class LoginForm(FlaskForm):
   email = StringField('Email',
-                         validators=[DataRequired(),
+                         validators=[Optional(),
                                      Length(min=6, max=255),
                                      Email()])
   password = PasswordField('Password',
-                           validators=[DataRequired(),
+                           validators=[Optional(),
                                        Length(min=8, max=255)])
   remember_me = BooleanField("Remember Me")
   submit = SubmitField('Login')
   
 class RegisterForm(FlaskForm):
   email = StringField('Email',
-                         validators=[DataRequired(),
+                         validators=[Optional(),
                                      Length(min=6, max=255),
-                                     Email(),
-                                     Unique(User,User.email)])
+                                     Email()])
   username = StringField('Username',
                          validators=[DataRequired(),
                                      Length(min=1, max=64),
                                      Regexp('^[A-Za-z0-9_-]+$', message="Username can only contain letters, numbers, underscores, and dashes.")])
   password = PasswordField('Password',
-                           validators=[DataRequired(),
+                           validators=[Optional(),
                                        Length(min=8, max=255)])
   password2 = PasswordField('Repeat Password',
-                            validators=[DataRequired(),
+                            validators=[Optional(),
                                         EqualTo('password')])
   tos = BooleanField("Terms of Service", validators=[DataRequired()])
   marketing = BooleanField("Marketing", validators=[Optional()])
-  submit = SubmitField('Register')
+  submit = SubmitField()
 
 class EmailChangeForm(FlaskForm):
   email = StringField('New Email',
                          validators=[DataRequired(),
                                      Length(min=6, max=255),
-                                     Email(),
-                                     Unique(User,User.email)])
+                                     Email()])
   submit = SubmitField('Submit')
 
 class EmailForm(FlaskForm):
@@ -68,4 +56,6 @@ class PasswordChangeForm(FlaskForm):
                             validators=[DataRequired(),
                                         EqualTo('password')])
   submit = SubmitField('Submit')
-  
+
+class SubmitForm(FlaskForm):
+  submit = SubmitField('Submit')

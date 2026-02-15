@@ -1,0 +1,1 @@
+from project.views.auth import local_auth, oauth

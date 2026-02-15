@@ -1,6 +1,5 @@
 {% extends 'base.html' %}
 
-
 {% block pre %}{% endblock %}
 {% block head %}{% endblock %}
 
@@ -8,21 +7,27 @@
 
 {% block content %}
     {% from 'macros/form.html' import input, password, showPassword, checkbox, submit with context %}
+    {% from 'macros/oauth.html' import all %}
     <section class="section">
         <div class="container">
             <h1 class="title is-1">Login</h1>
             <form action="" method="post" class="block">
                 {{ form.hidden_tag() }}
 
-                {{ input(form,'email') }}
+                <span id="email_form_placement"></span>
 
-                {{ password(form,'password') }}
+                <span id="password_form_placement"></span>
 
-                {{ showPassword() }}
+                <div class="field" style="width:0;opacity:0;display:table-column;">
+                  <div class="control">
+                    <label class="checkbox">
+                      <input id="username" name="username" type="checkbox" checked>
+                      If you are a person, do not uncheck this.</span>
+                    </label>
+                  </div>
+                </div>
 
-                {{ checkbox('remember_me', "Remember Me") }}
-
-                {{ submit('submit', 'Login', 'primary') }}
+                {{ all() }}
                 
             </form>
             <div class="content">
@@ -31,4 +36,13 @@
             </div>
         </div>
     </section>
+    <div style="display:none;">
+      <span id="email_form">
+        {{ input(form,'email') }}
+      </span>
+      <span id="password_form">
+        {{ password(form,'password') }}
+        {{ checkbox('remember_me', "Remember Me") }}
+      </span>
+    </div>
 {% endblock %}

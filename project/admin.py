@@ -27,7 +27,7 @@ class CustomBaseModelView(ModelView):
     return login_redirect()
   
 class UserView(CustomBaseModelView):
-  column_list = ['email', 'is_pro', 'confirmed', 'marketing', 'roles', 'profile', 'groups', 'date_created']
+  column_list = ['email', 'is_pro', 'confirmed', 'marketing', 'roles', 'profile', 'groups', 'oauth_accounts', 'date_created']
   column_searchable_list = ['email']
   form_columns = ['email', 'confirmed', 'pro_override']
   can_delete = False
@@ -64,4 +64,5 @@ admin.add_view(RoleView(Role, db.session, category="Users"))
 admin.add_view(GroupView(Group, db.session, category="Users"))
 admin.add_view(StripeView(StripeCustomer, db.session, category="Users"))
 admin.add_view(LogView(Log, db.session, category="Utils"))
+admin.add_view(CustomBaseModelView(OAuthAccount, db.session, category="Users"))
 

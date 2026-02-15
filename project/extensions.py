@@ -51,3 +51,13 @@ mail = Mail()
 
 from flask_smorest import Api
 api = Api()
+
+from authlib.integrations.flask_client import OAuth
+oauth = OAuth()
+
+from better_profanity import profanity
+from project.common.censor import the_big_username_blocklist
+list = the_big_username_blocklist.data
+list.append('vfolio')
+profanity.load_censor_words()
+profanity.add_censor_words(list)

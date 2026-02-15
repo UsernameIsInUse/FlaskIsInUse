@@ -41,7 +41,6 @@ class ProfileGroupAdd(MethodView):
   @bp.response(204)
   def post(self):
     data = request.form.to_dict()
-    print(data)
     if current_user.is_authenticated:
       group = Group.query.filter_by(name=data['group']).first()
       if current_user == group.owner:

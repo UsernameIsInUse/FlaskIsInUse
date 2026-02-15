@@ -22368,3 +22368,16 @@ table {
   overflow: hidden;
   transition: height 250ms ease;
 }
+
+.button.is-oauth {
+  --bulma-button-padding-vertical: 1rem;
+  --bulma-button-padding-horizontal: 2rem;
+}
+.button.is-oauth span.icon:first-child:not(:last-child) {
+  margin-inline-start: calc(-0.25 * var(--bulma-button-padding-horizontal));
+  margin-inline-end: calc(var(--bulma-button-padding-horizontal) * 0.33);
+}
+
+svg.has-color-inherit path {
+  fill: var(--bulma-text-strong);
+}

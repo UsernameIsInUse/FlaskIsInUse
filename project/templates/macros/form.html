@@ -66,7 +66,39 @@
 {% macro submit(name, display, color) %}
 <div class="field">
   <div class="control">
-    <input id="{{name}}" name="{{name}}" type="{{name}}" value="{{display}}" class="button is-{{color}}">
+    <input id="{{name}}" name="{{name}}" type="submit" value="{{display}}" class="button is-{{color}}">
   </div>
 </div>
+{% endmacro %}
+
+{% macro cft() %}
+<div class="cft field">
+  <div id="ts-container-oauth" class="cft"></div>
+</div>
+
+<script>
+  $(document).ready(function() {
+    let widgetId = null;
+    let solved = false;
+
+    widgetId = turnstile.render('#ts-container-oauth', {
+      sitekey: '{{ts_site_key}}',
+      execution: 'execute',
+      appearance: 'always',
+      callback: function (token) {
+        solved = true;
+      },
+      'error-callback': function () {
+        console.log('Turnstile error');
+        $(".cft").css("height","100%");
+      }
+    })
+    turnstile.execute(widgetId);
+    setTimeout(() => {
+      if (!solved) {
+        $(".cft").css("height","100%");
+      }
+    }, 2000);
+  });
+</script>
 {% endmacro %}
