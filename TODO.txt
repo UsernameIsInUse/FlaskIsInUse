@@ -1,46 +1,11 @@
-User settings page
-  account
-    email
-    password
-  profiles
-    {profile}
-      settings
-      users
-  preferences
-    marketing emails
-    site theme override
-  subscription
-    manage subscription
-  close account
-
-
-
-
-
-account/profile/etc management - custom
-password reset - flask-mail, itsdangerous
-
-
-expand and customize bulma
-htmx
-
-
-
 make subscription prettier
-sidebar/pages/etc
-dark/light mode
-oauth
-turnstyle integration on register page
-
-
-OAuth username registration and code cleanup
-sub-string censoring list
-Registration and login page refactors (show login/register with buttons and email as a separate option which changes the page, Honeypot input, real-time validation, etc)
-Stripe code cleanup (and refactor into API?)
-Turnstile code cleanup (and refactor into API?)
+dark/light mode preference + cookie
+real-time login/register form validation
+Stripe refactor into api?
+Turnstile refactor into api?
+OAuth refactor into api?
+general code cleanup
 Sidebar
-Light/dark mode toggle with cookie memory
+general pages
 Profile/group settings (change username)
-Sidebar
-Make subscription prettier
 Update readme

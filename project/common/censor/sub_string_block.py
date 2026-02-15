@@ -1,1 +1,1 @@
-data = ['aryan','hitler','nazi','faggot','nigga','nigger']
+data = ['aryan','hitler','nazi','faggot','nigga','nigger','vfolio']
