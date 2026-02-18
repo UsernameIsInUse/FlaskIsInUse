@@ -1,4 +1,4 @@
-from flask import redirect, url_for, request, jsonify, abort
+from flask import redirect, url_for, request
 from flask_login import current_user, login_required
 
 from project.views import bp
@@ -21,50 +21,6 @@ def subscription_success():
 @login_required
 def subscription_cancel():
   return redirect(url_for('views.user_settings', page="subscription"))
-
-@bp.route("/subscription/config")
-@login_required
-def get_publishable_key():
-  stripe_config = {"publicKey": stripe_keys["publishable_key"]}
-  return jsonify(stripe_config)
-  
-@bp.route('/subscription/create-checkout-session/<term>')
-@login_required
-def create_checkout_session(term:str):
-  log(user=current_user, request=request, description='Created stripe checkout session')
-  stripe.api_key = stripe_keys["secret_key"]
-  if term == "m":
-    line_items=[
-        {
-          "price": stripe_keys["monthly_price"],
-          "quantity": 1,
-        }
-      ]
-  elif term == "y":
-    line_items=[
-        {
-          "price": stripe_keys["yearly_price"],
-          "quantity": 1,
-        }
-      ]
-  else:
-    abort(400)
-  customer = None
-  if current_user.stripe:
-    customer = current_user.stripe.stripe_customer_id
-  try:
-    checkout_session = stripe.checkout.Session.create(
-      client_reference_id=current_user.id,
-      customer=customer,
-      success_url = url_for('views.subscription_success', _external=True) + "?session_id={CHECKOUT_SESSION_ID}",
-      cancel_url = url_for('views.subscription_cancel', _external=True),
-      mode="subscription",
-      line_items=line_items
-    )
-    return jsonify({"sessionId": checkout_session["id"]})
-  except Exception as e:
-    return jsonify(error=str(e)), 403
-  
 
 @bp.route("/subscription/webhook", methods=["POST"])
 @csrf.exempt
@@ -116,17 +72,3 @@ def stripe_webhook():
     db.session.commit()
 
   return "", 200
-
-@bp.route('/subscription/create-portal-session')
-@login_required
-def create_portal_session():
-  stripe.api_key = stripe_keys["secret_key"]
-  try:
-    portal_session = stripe.billing_portal.Session.create(
-      customer = current_user.stripe.stripe_customer_id,
-      return_url = url_for('views.user_settings', _external=True)
-    )
-    log(user=current_user, request=request, description='Created a stripe billing portal session')
-    return jsonify({'url': portal_session.url})
-  except Exception as e:
-    return jsonify({'error': str(e)}), 403

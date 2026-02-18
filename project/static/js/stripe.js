@@ -1,6 +1,6 @@
 console.log("Sanity check!");
 
-fetch("/subscription/config")
+fetch("/api/v1/subscriptions/config")
 .then((result) => { return result.json(); })
 .then((data) => {
   const stripe = Stripe(data.publicKey);
@@ -8,7 +8,7 @@ fetch("/subscription/config")
   document.querySelectorAll(".monthly").forEach(button => {
     button.addEventListener("click", () => {
       // Get Checkout Session ID
-      fetch("/subscription/create-checkout-session/m")
+      fetch("/api/v1/subscriptions/create-checkout-session/monthly")
       .then((result) => { return result.json(); })
       .then((data) => {
         console.log(data);
@@ -23,7 +23,7 @@ fetch("/subscription/config")
   document.querySelectorAll(".yearly").forEach(button => {
     button.addEventListener("click", () => {
       // Get Checkout Session ID
-      fetch("/subscription/create-checkout-session/y")
+      fetch("/api/v1/subscriptions/create-checkout-session/yearly")
       .then((result) => { return result.json(); })
       .then((data) => {
         console.log(data);
@@ -37,7 +37,7 @@ fetch("/subscription/config")
   });
   document.querySelectorAll(".portal").forEach(button => {
     button.addEventListener("click", () => {
-      fetch("/subscription/create-portal-session")
+      fetch("/api/v1/subscriptions/create-portal-session")
       .then((result) => result.json())
       .then((data) => {
         if (data.url) {

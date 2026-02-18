@@ -1,8 +1,9 @@
+from flask import request
 from flask_smorest import Blueprint
 from flask.views import MethodView
-from project.services import send_password_reset_email, send_email_confirmation_email
-from flask import request
 from flask_login import current_user
+
+from project.services import send_password_reset_email, send_email_confirmation_email
 from project import db
 from project.utils import log
 

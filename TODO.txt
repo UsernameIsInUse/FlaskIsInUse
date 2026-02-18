@@ -1,11 +1,5 @@
 make subscription prettier
 dark/light mode preference + cookie
-real-time login/register form validation
-Stripe refactor into api?
-Turnstile refactor into api?
-OAuth refactor into api?
-general code cleanup
 Sidebar
 general pages
 Profile/group settings (change username)
-Update readme

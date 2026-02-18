@@ -1,9 +1,9 @@
+from flask import request
 from flask_smorest import Blueprint
 from flask.views import MethodView
-from flask import request
 from flask_login import current_user
+
 from project import db
-from project.utils import log
 from project.models import User, Group, UserGroup
 from project.services import send_group_invite_request_email, send_group_owner_request_email
 
