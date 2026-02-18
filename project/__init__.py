@@ -1,4 +1,5 @@
 from flask import Flask
+
 from config import Config
 from project.extensions import flashy, ipban, csrf, db, migrate, admin, login, squeeze, toolbar, authorize, mail, api, oauth
 import flask_noai
@@ -51,7 +52,6 @@ def create_app(config_class=Config):
     api.register_blueprint(api_bp)
     
   # Register OAuth
-  
   oauth.register(
     name="google",
     client_id=app.config["GOOGLE_CLIENT_ID"],

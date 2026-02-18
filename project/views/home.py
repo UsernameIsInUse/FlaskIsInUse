@@ -1,4 +1,5 @@
-from flask import render_template, redirect, url_for, request
+from flask import render_template, redirect, url_for
+
 from project.utils import reset_database
 from project.access_control import admin_check_decorator
 from project.views import bp

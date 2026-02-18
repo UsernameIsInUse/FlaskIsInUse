@@ -1,9 +1,7 @@
 from flask_wtf import FlaskForm
+
 from wtforms import StringField, SubmitField, PasswordField, BooleanField, SelectMultipleField, SelectField, HiddenField, TextAreaField
 from wtforms.validators import DataRequired, Length, ValidationError, EqualTo, Email, Regexp, Optional
-from project.models import User
-from flask_login import current_user
-from flask import request
 
 class LoginForm(FlaskForm):
   email = StringField('Email',

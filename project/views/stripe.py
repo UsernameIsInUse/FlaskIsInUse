@@ -1,7 +1,7 @@
-from project.views import bp
 from flask import redirect, url_for, request, jsonify, abort
 from flask_login import current_user, login_required
-from flask_flashy import flash
+
+from project.views import bp
 from project.utils import log
 from project.stripe import stripe, stripe_keys
 from project.models import User, StripeCustomer
@@ -30,7 +30,7 @@ def get_publishable_key():
   
 @bp.route('/subscription/create-checkout-session/<term>')
 @login_required
-def create_checkout_session(term):
+def create_checkout_session(term:str):
   log(user=current_user, request=request, description='Created stripe checkout session')
   stripe.api_key = stripe_keys["secret_key"]
   if term == "m":

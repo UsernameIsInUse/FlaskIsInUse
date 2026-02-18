@@ -1,13 +1,14 @@
 from flask import render_template, redirect, url_for, request
-from flask_login import current_user, fresh_login_required, login_required
+from flask_login import current_user, login_required
+from flask_flashy import flash
+
+from project import db
 from project.views import bp
 from project.access_control import confirm_token
-from project.utils import send_email, log
+from project.utils import log
 from project.forms import EmailChangeForm
 from project.models import User, Group, UserGroup
 from project.services import send_email_changed_email
-from project import db
-from flask_flashy import flash
 
 @bp.route('/settings/', methods=['GET', 'POST'])
 @login_required
@@ -34,7 +35,7 @@ def user_settings():
 
 @bp.route('/settings/g/<group>/invite/<token>')
 @login_required
-def group_invite(group, token):
+def group_invite(group:str, token:str):
   email = confirm_token(token, expiration=604800)
   user = User.query.filter_by(email=email).first()
   group = Group.query.filter_by(name=group).first()
@@ -51,7 +52,7 @@ def group_invite(group, token):
   
 @bp.route('/settings/g/<group>/owner_invite/<token>')
 @login_required
-def group_owner_invite(group, token):
+def group_owner_invite(group:str, token:str):
   email = confirm_token(token, expiration=604800)
   user = User.query.filter_by(email=email).first()
   group = Group.query.filter_by(name=group).first()

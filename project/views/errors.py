@@ -1,7 +1,8 @@
-from project.views import bp
 from flask import redirect, url_for, request
 from flask_login import current_user
 from flask_flashy import flash
+
+from project.views import bp
 from project.utils import log
 
 @bp.app_errorhandler(404)

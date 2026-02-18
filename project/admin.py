@@ -1,10 +1,10 @@
-from flask import Blueprint, abort, redirect, url_for, request
-from project import admin, db
-from project.models import *
+from flask import Blueprint, abort
 from flask_admin.contrib.sqla import ModelView
 from flask_admin.menu import MenuLink
-from flask_admin import AdminIndexView
 from flask_login import current_user
+
+from project import admin, db
+from project.models import *
 from project.access_control import login_redirect, is_admin
 
 bp = Blueprint('admin_app', __name__)
@@ -57,12 +57,17 @@ class StripeView(CustomBaseModelView):
 class LogView(CustomBaseModelView):
   column_list = ['user', 'description', 'date_created']
   column_searchable_list = ['description']
+  
+class OAuthView(CustomBaseModelView):
+  column_list = ['user', 'provider']
+  column_filters = ['provider']
 
 admin.add_view(UserView(User, db.session, category="Users"))
+admin.add_view(OAuthView(OAuthAccount, db.session, category="Users"))
 admin.add_view(ProfileView(Profile, db.session, category="Users"))
 admin.add_view(RoleView(Role, db.session, category="Users"))
 admin.add_view(GroupView(Group, db.session, category="Users"))
 admin.add_view(StripeView(StripeCustomer, db.session, category="Users"))
 admin.add_view(LogView(Log, db.session, category="Utils"))
-admin.add_view(CustomBaseModelView(OAuthAccount, db.session, category="Users"))
+
 

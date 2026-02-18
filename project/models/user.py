@@ -1,16 +1,19 @@
+from flask_login import UserMixin
+from flask_authorize import AllowancesMixin
+
 from project.extensions import db
-from sqlalchemy.sql import func
-from sqlalchemy.orm import Mapped, mapped_column
 from project.utils import log
 from project.access_control import is_admin
-from flask_login import UserMixin
-from werkzeug.security import generate_password_hash, check_password_hash
-import json
-from flask import url_for
-from flask_authorize import PermissionsMixin, AllowancesMixin
 from project.stripe import stripe
+
+from sqlalchemy.orm import Mapped, mapped_column
+from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timezone
 from typing import List, Optional
+
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+  from project.models import Log, UserGroup, UserRole
 
 class User(UserMixin, db.Model):
   __tablename__ = 'users'
@@ -68,6 +71,7 @@ class User(UserMixin, db.Model):
   
   @property
   def profiles(self) -> list:
+    from project.models import Profile
     profiles = []
     for group in self.groups:
       profiles.append(Profile.query.filter_by(username=group.name).first())
@@ -136,77 +140,6 @@ class Role(db.Model, AllowancesMixin):
   def users(self) -> list:
     return [link.user for link in self.user_links]
   
-class Group(db.Model):
-  __tablename__ = 'groups'
-  id: Mapped[int] = mapped_column(primary_key=True)
-  name: Mapped[str] = mapped_column(db.String(255), unique=True)
-  date_created: Mapped[datetime] = mapped_column(default=lambda: datetime.now(timezone.utc))
-  user_links: Mapped[List["UserGroup"]] = db.relationship("UserGroup", back_populates="group", cascade="all, delete-orphan")
-  
-  def __repr__(self):
-    return f"{self.name}"
-  
-  @property
-  def users(self) -> list:
-    return [link.user for link in self.user_links]
-  
-  @property
-  def profile(self):
-    return Profile.query.filter_by(username=self.name).first()
-  
-  @property
-  def owner(self):
-    return self.profile.owner
-  
-class UserRole(db.Model):
-  __tablename__ = 'user_roles'
-  id: Mapped[int] = mapped_column(primary_key=True)
-  user_id: Mapped[int] = mapped_column(db.ForeignKey("users.id"))
-  role_id: Mapped[int] = mapped_column(db.ForeignKey("roles.id"))
-  user: Mapped["User"] = db.relationship(back_populates="role_links")
-  role: Mapped["Role"] = db.relationship(back_populates="user_links")
-  date_created: Mapped[datetime] = mapped_column(default=lambda: datetime.now(timezone.utc))
-  
-  def __repr__(self):
-    return f"{self.user} - {self.role}"
-
-class UserGroup(db.Model):
-  __tablename__ = 'user_groups'
-  id: Mapped[int] = mapped_column(primary_key=True)
-  user_id: Mapped[int] = mapped_column(db.ForeignKey("users.id"))
-  group_id: Mapped[int] = mapped_column(db.ForeignKey("groups.id"))
-  user: Mapped["User"] = db.relationship(back_populates="group_links")
-  group: Mapped["Group"] = db.relationship(back_populates="user_links")
-  date_created: Mapped[datetime] = mapped_column(default=lambda: datetime.now(timezone.utc))
-  
-  def __repr__(self):
-    return f"{self.user} - {self.group}"
-class Profile(db.Model, PermissionsMixin):
-  """Provide a `username` and a `group`
-  """
-  __tablename__ = 'profiles'
-  __permissions__ = dict(
-        owner=['read', 'update', 'delete'],
-        group=['read', 'update'],
-        other=['read']
-    )
-  id: Mapped[int] = mapped_column(primary_key=True)
-  username: Mapped[str] = mapped_column(db.String(64), unique=True)
-  date_created: Mapped[datetime] = mapped_column(default=lambda: datetime.now(timezone.utc))
-  
-  # Other profile data
-  
-  def __repr__(self):
-    return f"{self.username}"
-  
-  @property
-  def users(self) -> list:
-    return self.group.users
-  
-  @property
-  def url(self) -> str:
-    return url_for('views.profile', username=self.username)
-  
 class StripeCustomer(db.Model):
   __tablename__ = "stripe_customers"
   id: Mapped[int] = mapped_column(primary_key=True)
@@ -248,24 +181,3 @@ class StripeCustomer(db.Model):
       return False
     except:
       return False
-
-
-class Log(db.Model):
-  __tablename__ = 'logs'
-  id: Mapped[int] = mapped_column(primary_key=True)
-  user_id: Mapped[Optional[int]] = mapped_column(db.ForeignKey('users.id'))
-  data: Mapped[Optional[str]] = mapped_column(db.Text)
-  description: Mapped[Optional[str]] = mapped_column(db.Text)
-  date_created: Mapped[datetime] = mapped_column(default=lambda: datetime.now(timezone.utc))
-  
-  def __repr__(self):
-    return f"{self.id}"
-  
-  @property
-  def as_dict(self) -> dict:
-    """Converts json data into python dict.
-
-    Returns:
-        dict: Dictionary of request and other passed data.
-    """
-    return json.loads(self.data)

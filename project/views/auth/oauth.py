@@ -1,16 +1,18 @@
-from project import login, db, oauth
-from project.views import bp
-from flask import render_template, redirect, url_for, request, current_app, session, abort
-from flask_login import login_user, logout_user, current_user, login_required
+from flask import redirect, url_for, request, session, abort
+from flask_login import login_user, current_user
 from flask_flashy import flash
-from project.models import User, Profile, Group, UserGroup, OAuthAccount
+
+from project import db, oauth
+from project.views import bp
+from project.models import User, OAuthAccount
 from project.utils import log, db_add
-from project.access_control import generate_token, confirm_token, confirmed_check_decorator, not_confirmed_check_decorator, not_authenticated_check_decorator, validate_turnstyle, login_redirect, register_redirect
-from datetime import datetime, timezone
 from project.services import setup_user
+from project.access_control import login_redirect
+
+from datetime import datetime, timezone
 
 @bp.route('/auth/<provider>')
-def login_oauth(provider):
+def login_oauth(provider:str):
   connect = request.args.get("connect")
   disconnect = request.args.get("disconnect")
   if connect and current_user.is_authenticated:

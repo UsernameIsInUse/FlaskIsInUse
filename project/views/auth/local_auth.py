@@ -1,23 +1,29 @@
-from project import login, db
-from project.views import bp
 from flask import render_template, redirect, url_for, request, current_app, session
 from flask_login import login_user, logout_user, current_user, login_required
 from flask_flashy import flash
+
+from project import login, db
+from project.views import bp
 from project.models import User, Profile
-from project.utils import log, db_add, send_email
+from project.utils import log, db_add
 from project.common.censor import check_censor
 from project.forms import LoginForm, RegisterForm, EmailChangeForm, EmailForm, PasswordChangeForm
-from project.access_control import generate_token, confirm_token, confirmed_check_decorator, not_confirmed_check_decorator, not_authenticated_check_decorator, validate_turnstyle, login_redirect
-from project.services import setup_user, send_password_reset_email, send_email_confirmation_email
-from datetime import datetime
+from project.access_control import confirm_token, confirmed_check_decorator, not_confirmed_check_decorator, not_authenticated_check_decorator, validate_turnstile, login_redirect
+from project.services import setup_user, send_password_reset_email
 from project.extensions import ipban
 
+from datetime import datetime
+
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+  from flask import Request
+
 @login.user_loader
-def load_user(id):
+def load_user(id:int) -> User:
   return User.query.get(int(id))
 
 @login.needs_refresh_handler
-def refresh():
+def refresh() -> "Request":
   logout_user()
   flash("Please log in again to access this page.", 'info')
   return login_redirect()
@@ -77,7 +83,7 @@ def register():
     remoteip = request.headers.get('CF-Connecting-IP') or \
                request.headers.get('X-Forwarded-For') or \
                request.remote_addr
-    validation = validate_turnstyle(token, current_app.config["TURNSTILE_SECRET_KEY"], remoteip=remoteip)
+    validation = validate_turnstile(token, current_app.config["TURNSTILE_SECRET_KEY"], remoteip=remoteip)
     if not validation['success']:
       flash('Something went wrong, please try again.', category='danger')
       log(request=request, description='Failed register attempt via turnstile verification fail')
@@ -150,7 +156,7 @@ def confirm():
 
 @bp.route('/confirm/<token>')
 @not_confirmed_check_decorator
-def confirm_email(token):
+def confirm_email(token:str):
   email = confirm_token(token)
   try:
     user = User.query.filter_by(unconfirmed_email=email).first()
@@ -185,7 +191,7 @@ def password_request():
   return render_template("user/password_request.html", title="Forgot Password", form=form,)
 
 @bp.route('/password/forgot/<email>')
-def password_request_send(email):
+def password_request_send(email:str):
   send_password_reset_email(email)
   flash("An email has been sent to reset your password.","info")
   return redirect(url_for('views.password_request'))
@@ -195,7 +201,7 @@ def password_reset():
   return render_template("user/password_wait.html", title="Reset Password")
 
 @bp.route('/password/reset/<token>', methods=['GET', 'POST'])
-def password_reset_token(token):
+def password_reset_token(token:str):
   email = confirm_token(token)
   user = User.query.filter_by(email=email).first()
   form = PasswordChangeForm()

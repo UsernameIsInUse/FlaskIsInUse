@@ -1,9 +1,16 @@
-from project import db, mail
+from flask import current_app
 from flask_login import current_user
+from flask_mail import Message
+
+from project import db, mail
+
 import json
 from os import environ
-from flask_mail import Message
-from flask import current_app
+
+from typing import TYPE_CHECKING, Optional
+if TYPE_CHECKING:
+  from flask import Request
+  from project.models import User, Group, Profile
 
 def db_add(object) -> bool:
   """Adds the given object to the database and commits.
@@ -19,7 +26,18 @@ def db_add(object) -> bool:
     print(e)
     return False
 
-def log(data:dict=None, request=None, user=None, description:str=None) -> bool:
+def log(data:Optional[dict]=None, request:Optional["Request"]=None, user:Optional["User"]=None, description:str=None) -> bool:
+  """Creates a log using the provided arguments.
+
+  Args:
+      data (Optional[dict], optional): Data to include in the log. Defaults to None.
+      request (Optional[&quot;Request&quot;], optional): Request to include in the log. Defaults to None.
+      user (Optional[&quot;User&quot;], optional): User to include in the log. Defaults to None.
+      description (str, optional): Description of the log. Defaults to None.
+
+  Returns:
+      bool: Whether or not creating the log was successful.
+  """
   from project.models import Log
   try:
     user = user or current_user
@@ -53,7 +71,7 @@ def log(data:dict=None, request=None, user=None, description:str=None) -> bool:
     print(e)
     return False
 
-def get_profile(username:str):
+def get_profile(username:str) -> "Profile":
   """Returns a profile from a username.
 
   Args:
@@ -65,14 +83,14 @@ def get_profile(username:str):
   from project.models import Profile
   return Profile.query.filter_by(username=username).first_or_404()
 
-def get_group(username:str):
+def get_group(username:str) -> "Group":
   """Returns a group from a username.
 
   Args:
-      username (str): Username of the profile.
+      username (str): Username of the Group.
 
   Returns:
-      Profile
+      Group
   """
   from project.models import Group
   return Group.query.filter_by(name=username).first_or_404()
@@ -94,8 +112,9 @@ def reset_database(dev=False) -> bool:
     print(e)
     return False
   
-def dev_database() -> bool:
-  from project.models import User, Profile, Group, UserGroup, Role, UserRole
+def dev_database():
+  """Creates an Admin user from environment variables."""
+  from project.models import User, Role, UserRole, Profile, Group, UserGroup
   user = User(email=environ['DEV_EMAIL'], confirmed=True)
   user.set_password(environ['DEV_PASS'])
   db_add(user)
@@ -110,7 +129,7 @@ def dev_database() -> bool:
   userrole = UserRole(user=user, role=admin)
   db_add(userrole)
   
-def send_email(recipients:list,subject:str,html:str):
+def send_email(recipients:list,subject:str,html:str) -> bool:
   """Sends individual emails to a list of recipients.
 
   Args:
@@ -128,5 +147,7 @@ def send_email(recipients:list,subject:str,html:str):
       )
       mail.send(msg)
       log(f'Email Sent: {subject} to {recipient}')
+      return True
   except:
     log(f'Email Failed to Send: {subject} to {recipient}')
+    return False

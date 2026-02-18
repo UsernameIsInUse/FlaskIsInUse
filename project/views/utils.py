@@ -1,8 +1,13 @@
 from flask import request, send_from_directory
+
 from project.views import bp
-from project.models import User
 from project.utils import log
+
 import random
+
+from typing import TYPE_CHECKING, List
+if TYPE_CHECKING:
+  from flask import Request
 
 @bp.before_app_request
 def log_page_view():
@@ -22,14 +27,14 @@ def log_page_view():
   log(request=request, description=f'Viewed {url}')
   
 @bp.app_template_filter('shuffle')
-def filter_shuffle(seq:list):
+def filter_shuffle(seq:List) -> List:
   """Shuffles a given list in jinja templating.
 
   Args:
-      seq (list): _description_
+      seq (List): List to shuffle.
 
   Returns:
-      _type_: _description_
+      List: Shuffled list.
   """
   try:
     result = list(seq)
@@ -39,14 +44,14 @@ def filter_shuffle(seq:list):
     return seq
   
 @bp.app_template_filter('order')
-def filter_order(seq:list):
+def filter_order(seq:List) -> List:
   """orders a given list by `.order()` in jinja templating.
 
   Args:
-      seq (list): List to be sorted
+      seq (List): List to be ordered.
 
   Returns:
-      _type_: Sorted list
+      List: Ordered list.
   """
   try:
     ul = list(seq)
