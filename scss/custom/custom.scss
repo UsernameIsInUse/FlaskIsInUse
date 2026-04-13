@@ -1,9 +1,10 @@
 body {
-  min-height: 100vh;
+  --top-margin: var(--nav-height);
+  min-height: calc(100svh - var(--top-margin));
   margin: 0;
   display: flex;
   flex-direction: column;
-  margin-top: var(--nav-height)
+  margin-top: var(--top-margin)
 }
 
 .version{
@@ -199,4 +200,30 @@ table {
 
 svg.has-color-inherit path{
   fill: var(--bulma-text-strong);
+}
+
+.menu {
+  --bulma-menu-label-color: var(--bulma-text-strong);
+  --bulma-menu-item-background-l: var(--bulma-dark-10-l);
+  background-color: hsl(var(--bulma-dark-h),var(--bulma-dark-s),var(--bulma-dark-dark-l)) !important;
+}
+
+.has-radius-small {
+  border-radius: var(--bulma-radius-small);
+}
+
+.has-radius {
+  border-radius: var(--bulma-radius);
+}
+
+.has-radius-medium {
+  border-radius: var(--bulma-radius-medium);
+}
+
+.has-radius-large {
+  border-radius: var(--bulma-radius-large);
+}
+
+.has-radius-rounded {
+  border-radius: var(--bulma-radius-rounded);
 }

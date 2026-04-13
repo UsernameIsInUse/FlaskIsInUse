@@ -1,38 +1,65 @@
 :root, [data-theme=default], .theme-default {
-  --bulma-primary-h: 350deg;
-  --bulma-primary-s: 80%;
-  --bulma-primary-l: 50%;
-  --bulma-info-h: 200deg;
-  --bulma-info-s: 80%;
-  --bulma-info-l: 50%;
-  --bulma-link-h: 200deg;
-  --bulma-link-s: 80%;
-  --bulma-link-l: 50%;
-  --bulma-success-h: 100deg;
-  --bulma-success-s: 84%;
-  --bulma-success-l: 46%;
-  --bulma-warning-h: 50deg;
-  --bulma-warning-s: 83%;
-  --bulma-warning-l: 47%;
-  --bulma-danger-h: 10deg;
-  --bulma-danger-s: 80%;
-  --bulma-danger-l: 50%;
   --bulma-scheme-h: 200;
   --bulma-scheme-s: 20%;
+
+  --bulma-primary-h: 350;
+  --bulma-primary-s: 80%;
+  --bulma-primary-l: 50%;
+
+  --bulma-info-h: 200;
+  --bulma-info-s: 80%;
+  --bulma-info-l: 50%;
+
+  --bulma-link-h: 200;
+  --bulma-link-s: 80%;
+  --bulma-link-l: 50%;
+
+  --bulma-success-h: 100;
+  --bulma-success-s: 84%;
+  --bulma-success-l: 46%;
+
+  --bulma-warning-h: 50;
+  --bulma-warning-s: 83%;
+  --bulma-warning-l: 47%;
+
+  --bulma-danger-h: 10;
+  --bulma-danger-s: 80%;
+  --bulma-danger-l: 50%;
+
   --bulma-light-h: var(--bulma-scheme-h);
   --bulma-light-s: var(--bulma-scheme-s);
   --bulma-light-l: 97%;
   --bulma-light-invert-l: 9%;
+  
   --bulma-dark-h: var(--bulma-scheme-h);
   --bulma-dark-s: var(--bulma-scheme-s);
   --bulma-dark-l: 9%;
   --bulma-dark-invert-l: 97%;
+
+  --bulma-black-h: var(--bulma-scheme-h);
+  --bulma-black-s: var(--bulma-scheme-s);
+  --bulma-white-h: var(--bulma-scheme-h);
+  --bulma-white-s: var(--bulma-scheme-s);
+  --bulma-text-h: var(--bulma-scheme-h);
+  --bulma-text-s: var(--bulma-scheme-s);
+
+  --bulma-black-bis: hsl(var(--bulma-scheme-h), var(--bulma-scheme-s), 9%);
+  --bulma-black-ter: hsl(var(--bulma-scheme-h), var(--bulma-scheme-s), 14%);
+  --bulma-grey-darker: hsl(var(--bulma-scheme-h), var(--bulma-scheme-s), 21%);
+  --bulma-grey-dark: hsl(var(--bulma-scheme-h), var(--bulma-scheme-s), 29%);
+  --bulma-grey: hsl(var(--bulma-scheme-h), var(--bulma-scheme-s), 48%);
+  --bulma-grey-light: hsl(var(--bulma-scheme-h), var(--bulma-scheme-s), 71%);
+  --bulma-grey-lighter: hsl(var(--bulma-scheme-h), var(--bulma-scheme-s), 86%);
+  --bulma-grey-lightest: hsl(var(--bulma-scheme-h), var(--bulma-scheme-s), 93%);
+  --bulma-white-ter: hsl(var(--bulma-scheme-h), var(--bulma-scheme-s), 96%);
+  --bulma-white-bis: hsl(var(--bulma-scheme-h), var(--bulma-scheme-s), 98%);
+  
   --bulma-family-primary: Proxima Nova,sans-serif;
   --bulma-family-secondary: Proxima Nova,sans-serif;
   --bulma-family-code: Source Code,monospace;
-  --bulma-duration: 200ms;
-  --bulma-strong-weight: 700;
   --bulma-family-logo: Proxima Nova,sans-serif;
+  --bulma-strong-weight: 700;
+  --bulma-duration: 200ms;
 
   --bulma-menu-light-background-color: var(--bulma-scheme-main-bis);
   --bulma-menu-dark-background-color: var(--bulma-scheme-main-bis);

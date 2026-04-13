@@ -3,3 +3,6 @@ dark/light mode preference + cookie
 Sidebar
 general pages
 Profile/group settings (change username)
+
+Figure out how to make the SCSS scheme variables actually variable -- ie $scheme-h and $scheme-s should use --bulma-scheme-h etc
+Then continue figuring out color palette (red is nice but god is it not accessible) and making sidebar and settings bar nice
