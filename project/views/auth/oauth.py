@@ -15,6 +15,9 @@ from datetime import datetime, timezone
 def login_oauth(provider:str):
   connect = request.args.get("connect")
   disconnect = request.args.get("disconnect")
+  login = request.args.get("login")
+  if login:
+    session["oauth_type"] = "login"
   if connect and current_user.is_authenticated:
     session["oauth_type"] = "connect"
   elif disconnect and current_user.is_authenticated:
@@ -61,7 +64,7 @@ def google_callback():
       user = oauth_account.user
       login_user(user)
       log(request=request, user=user, description=f'Logged in via {provider} OAuth via register page')
-      flash('You already have an account! Logged in.')
+      flash('You already have an account! Logged in.', "info")
       return redirect(url_for('views.index'))
     user = User.query.filter_by(email = userinfo['email']).first()
     if user:

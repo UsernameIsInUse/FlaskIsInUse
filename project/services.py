@@ -22,7 +22,7 @@ def send_email_confirmation_email(email:str) -> bool:
     token = generate_token(email)
     confirm_url = url_for("views.confirm_email", token=token, _external=True)
     html = render_template("email/email_confirmation.html", confirm_url=confirm_url, unsubscribe=False)
-    subject = "Confirm Your vfolio Account"
+    subject = "Confirm Your FlaskIsInUse Account"
     return send_email([email],subject,html)
   return False
 
@@ -40,7 +40,7 @@ def send_password_reset_email(email:str) -> bool:
     token = generate_token(email)
     confirm_url = url_for("views.password_reset_token", token=token, _external=True)
     html = render_template("email/password_reset.html", confirm_url=confirm_url, unsubscribe=False)
-    subject = "Change Your vfolio Password"
+    subject = "Change Your FlaskIsInUse Password"
     return send_email([email],subject,html)
   return False
 
@@ -59,7 +59,7 @@ def send_group_invite_request_email(email:str, group:Group) -> bool:
     token = generate_token(email)
     confirm_url = url_for("views.group_invite", token=token, group=group, _external=True)
     html = render_template("email/group/invite_request.html", group=group, confirm_url=confirm_url, unsubscribe=False)
-    subject = "vfolio Group Invite"
+    subject = "FlaskIsInUse Group Invite"
     return send_email([email],subject,html)
   return False
   
@@ -78,7 +78,7 @@ def send_group_owner_request_email(email:str, group:Group) -> bool:
     token = generate_token(email)
     confirm_url = url_for("views.group_owner_invite", token=token, group=group, _external=True)
     html = render_template("email/group/owner_request.html", group=group, confirm_url=confirm_url, unsubscribe=False)
-    subject = "vfolio Group Owner Invite"
+    subject = "FlaskIsInUse Group Owner Invite"
     return send_email([email],subject,html)
   return False
 
@@ -94,7 +94,7 @@ def send_email_changed_email(email:str) -> bool:
   user = User.query.filter_by(email=email).first()
   if user:
     html = render_template("email/email_change.html", unsubscribe=False)
-    subject = "Your vfolio Email Has Been Changed"
+    subject = "Your FlaskIsInUse Email Has Been Changed"
     return send_email([email],subject,html)
   return False
 

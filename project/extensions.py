@@ -58,6 +58,11 @@ oauth = OAuth()
 from better_profanity import profanity
 from project.common.censor import the_big_username_blocklist
 list = the_big_username_blocklist.data
-list.append('vfolio')
+list.append('flaskisinuse')
 profanity.load_censor_words()
 profanity.add_censor_words(list)
+
+from flask_compress import Compress
+compress = Compress()
+
+# Do I need compress and squeeze?

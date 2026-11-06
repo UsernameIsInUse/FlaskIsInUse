@@ -36,8 +36,8 @@ def login():
   if form.validate_on_submit():
     
     # Check Honeypot
-    honeypot = request.form.get('username')
-    if not honeypot:
+    honeypot = request.form.get('phone')
+    if honeypot:
       ipban.add()
       flash('Something went wrong. Use another login method or register instead?', 'warning', url=url_for('views.register'))
       log(request=request, description='Failed login attempt, tripped honeypot')
@@ -85,13 +85,13 @@ def register():
                request.remote_addr
     validation = validate_turnstile(token, current_app.config["TURNSTILE_SECRET_KEY"], remoteip=remoteip)
     if not validation['success']:
-      flash('Something went wrong, please try again.', category='danger')
+      flash('Something went wrong, please try again.', category='warning')
       log(request=request, description='Failed register attempt via turnstile verification fail')
       return render_template('user/register.html', form=form, ts_site_key=current_app.config["TURNSTILE_SITE_KEY"])
     
     # Check Honeypot
     honeypot = request.form.get('phone')
-    if not honeypot:
+    if honeypot:
       ipban.add()
       flash('Something went wrong. Use another login method or register instead?', 'warning', url=url_for('views.register'))
       log(request=request, description='Failed login attempt, tripped honeypot')
@@ -140,7 +140,7 @@ def register():
 def logout():
   log(request=request, user=current_user, description='Logged out')
   logout_user()
-  flash('Successfully logged out!', 'success')
+  flash('Successfully logged out.', 'info')
   return redirect(url_for('views.index'))
 
 @bp.route('/confirm/', methods=['GET', 'POST'])
@@ -149,7 +149,7 @@ def logout():
 def confirm():
   form = EmailChangeForm()
   if form.validate_on_submit():
-    if not User.query.filter_by(unconfirmed_email=form.email.data).first():
+    if not User.query.filter_by(unconfirmed_email=form.email.data).first() and not User.query.filter_by(email=form.email.data).first():
       current_user.unconfirmed_email = form.email.data
       db.session.commit()
   return render_template("user/confirm.html", title="Confirm", form=form)
@@ -161,7 +161,7 @@ def confirm_email(token:str):
   try:
     user = User.query.filter_by(unconfirmed_email=email).first()
     if user.confirmed:
-      flash("Email already confirmed", "info")
+      flash("Email already confirmed.", "warning")
       return login_redirect(next=False)
     else:
       user.email = user.unconfirmed_email
@@ -176,7 +176,7 @@ def confirm_email(token:str):
       else:
         return redirect(url_for("views.confirm_success"))
   except:
-    flash("The confirmation link is invalid or has expired.", "info")
+    flash("The confirmation link is invalid or has expired.", "warning")
     log(request=request, user=current_user, description='Email confirmation failed')
     return redirect(url_for("views.confirm"))
 

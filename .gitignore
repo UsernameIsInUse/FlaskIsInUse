@@ -172,7 +172,3 @@ cython_debug/
 
 # Custom
 .flaskenv
-custom_scss/
-node_modules/
-package-lock.json
-package.json

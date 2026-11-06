@@ -1,9 +1,9 @@
 {% macro item(name,target,isactive=False) %}
-<li><button {% if isactive %}class="is-active"{% endif %} data-target="{{target}}">{{name}}</button></li>
+<li><div class="group"><button {% if isactive %}class="is-active"{% endif %} data-target="{{target}}">{{name}}</button></div></li>
 {% endmacro %}
 
 {% macro script() %}
-<script>
+<script> // REPLACE WITH VANILLA/APLINE JS
     $(document).ready(function() {
         const queryString = window.location.search;
         const urlParams = new URLSearchParams(queryString);
@@ -11,23 +11,23 @@
         if (urlParams.has('page')) {
             const page = urlParams.get('page')
             console.log(page)
-            $("#menu .menu-list button[data-target="+page+"]").first().toggleClass('is-active');
+            $("#menu button[data-target="+page+"]").first().toggleClass('is-active');
             $("#"+page).toggleClass("is-hidden");
             $("#"+page).toggleClass('is-active');
         } else {
-            $("#menu .menu-list button").first().toggleClass('is-active')
+            $("#menu button").first().toggleClass('is-active')
             $(".targets div").first().toggleClass('is-hidden')
             $(".targets div").first().toggleClass('is-active')
         };
 
-        $("#menu .menu-list button").click(function() {
+        $("#menu button").click(function() {
             var target = $(this).data('target')
 
             const url = new URL(window.location);
             url.searchParams.set("page", target);
             window.history.replaceState({}, '', url);
 
-            $("#menu .menu-list .is-active").toggleClass('is-active')
+            $("#menu .is-active").toggleClass('is-active')
             $(this).toggleClass('is-active')
 
             $(".targets .is-active").toggleClass('is-hidden')
@@ -38,4 +38,4 @@
         });
     });
 </script>
-{% endmacro %}
+{% endmacro %}  

@@ -4,7 +4,7 @@
 {% endblock %}
 
 {% block title %}
-vfolio | Confirm Email
+Confirm Email |
 {% endblock %}
 
 {% block hidebar %}
@@ -13,16 +13,14 @@ hide
 
 {% block content %}
 <section class="section">
-  <input hidden hx-post={{url_for('users_v1.UserSendEmailConfirmation')}} hx-include="#csrf_token" hx-swap="none" hx-trigger="load">
+  <input hidden hx-post={{url_for('users_v1.UserSendEmailConfirmation')}} hx-include="#csrf_token" hx-swap="none" hx-trigger="load"> <!-- // REPLACE WITH VANILLA/APLINE JS -- CONSIDER ALPINE AJAX -->
   {% from 'macros/form.html' import input, submit with context %}
-  <div class="container">
-    <h1 class="title is-1">Confirm your Email</h1>
-    <div class="content">
-      <p>Check your email (including your spam folder) to confirm your email.</p>
-      <p>Confirmed on a different device? <a href="{{url_for('views.index')}}" style="text-decoration:underline;">Set up your account!</a></p>
-      <p>Did you mistype your email? Change it below.</a></p>
-    </div>
-    <form action="" method="post" class="block">
+  <div class="container is-sm content">
+    <h1>Confirm your Email</h1>
+    <p>Check your email (including your spam folder) to confirm your email.</p>
+    <p>Confirmed on a different device? <a href="{{url_for('views.index')}}">Set up your account!</a></p>
+    <p>Did you mistype your email? Change it below.</a></p>
+    <form action="" method="post">
       {{ form.hidden_tag() }}
 
       {{ input(form,'email') }}

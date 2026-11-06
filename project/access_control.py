@@ -29,11 +29,10 @@ def admin_check_decorator(f):
   @wraps(f)
   def decorated_function(*args, **kwargs):
     """The user must be authenticated and an admin to proceed."""
-    if current_user.is_authenticated:
-      if not is_admin():
-          return abort(403)
-    else:
+    if not current_user.is_authenticated:
       return login_redirect()
+    if not is_admin():
+      return abort(403)
     return f(*args, **kwargs)
   return decorated_function
 
@@ -41,11 +40,10 @@ def user_check_decorator(f):
   @wraps(f)
   def decorated_function(*args, **kwargs):
     """The user must be authenticated and belong to the profile group."""
-    if current_user.is_authenticated:
-      if not authorize.in_group(kwargs.get("username"))(current_user):
-        abort(403)
-    else:
+    if not current_user.is_authenticated:
       return login_redirect()
+    if not authorize.in_group(kwargs.get("username")):
+      abort(403)
     return f(*args, **kwargs)
   return decorated_function
 
@@ -64,7 +62,7 @@ def not_confirmed_check_decorator(f):
   def decorated_function(*args, **kwargs):
     """The user, if authenticated, must not have email confirmed."""
     if current_user.is_authenticated and current_user.confirmed:
-      flash('Email already confirmed.', 'info')
+      flash('Email already confirmed.', 'warning')
       return redirect(url_for('views.index'))
     return f(*args, **kwargs)
   return decorated_function
@@ -74,7 +72,7 @@ def not_authenticated_check_decorator(f):
   def decorated_function(*args, **kwargs):
     """The user must not be authenticated to proceed."""
     if current_user.is_authenticated:
-      flash('Already logged in.', 'info')
+      flash('Already logged in.', 'warning')
       return redirect(url_for('views.index'))
     return f(*args, **kwargs)
   return decorated_function

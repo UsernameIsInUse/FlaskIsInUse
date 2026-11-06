@@ -1,14 +1,23 @@
-<aside class="menu">
-    <p class="menu-label">General</p>
-    <ul class="menu-list">
-        <li><button>Account</button></li>
-        <li><button>Preferences</button></li>
-        <li><button>Manage Subscription</button></li>
-    </ul>
-    <p class="menu-label">Profiles</p>
-    <ul class="menu-list">
-        {% for group in current_user.groups %}
-        <li><button>{{group.name}}</button></li>
-        {% endfor %}
-    </ul>
+<aside class="sidebar">
+    <nav>
+
+        <h5 class="text-primary-vivid"><span class="group"><span class="icon"><i class="ti ti-click-filled"></i></span><span>General</span></span></h5>
+        <ul class="menu is-primary is-ghost">
+            <li><ul>
+                <li><a href="#">Account</a></li>
+                <li><a href="#">Preferences</a></li>
+                <li><a href="#">Manage Subscription</a></li>
+            </ul></li>
+        </ul>
+
+        <h5 class="text-primary-vivid"><span class="group"><span class="icon"><i class="ti ti-click-filled"></i></span><span>Profiles</span></span></h5>
+        <ul class="menu is-primary is-ghost">
+            <li><ul>
+                {% for group in current_user.groups %}
+                <li><a href="#">{{group.name}}</a></li>
+                {% endfor %}
+            </ul></li>
+        </ul>
+        
+    </nav>
 </aside>

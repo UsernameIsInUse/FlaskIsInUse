@@ -4,69 +4,53 @@
 <link rel="preconnect" href="https://challenges.cloudflare.com">
 {% endblock %}
 {% block head %}
-<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" defer></script>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"></script>
 {% endblock %}
 
 {% block title %}Register | {% endblock %}
 
 {% block content %}
-    {% from 'macros/form.html' import input, password, showPassword, checkbox, submit, cft with context %}
-    {% from 'macros/oauth.html' import all %}
-    <section class="section">
-        <div class="container">
-            <h1 class="title is-1">Sign Up</h1>
-            <form action="" method="post" class="block">
-                {{ form.hidden_tag() }}
+  {% from 'macros/form.html' import input, password, showPassword, checkbox, submit, cft, honeypot with context %}
+  {% from 'macros/oauth.html' import register %}
+  <section class="section">
+    <div class="container is-sm content">
+      <h1>Sign Up</h1>
+      <form action="" method="post" x-data="{ local: false }">
+        {{ form.hidden_tag() }}
 
-                <span id="email_form_placement"></span>
+        {{ input(form,'username') }}
 
-                {{ input(form,'username') }}
+        <template x-if="local">
+          <div class="block">
+            {{ input(form,'email') }}
+            {{ password(form,'password') }}
+            {{ password(form,'password2') }}
+            {{ showPassword() }}
+          </div>
+        </template>
 
-                <span id="password_form_placement"></span>
-
-                <div class="field">
-                  <div class="control">
-                    <label class="checkbox">
-                      <input id="tos" name="tos" type="checkbox" required>
-                      I agree to the <a href='{{url_for("views.tos")}}' target="_blank" style="text-decoration: underline;">terms and conditions</a>
-                    </label>
-                  </div>
-                </div>
-
-                <div class="field">
-                  <div class="control">
-                    <label class="checkbox">
-                      <input id="marketing" name="marketing" type="checkbox">
-                      Recieve occassional emails <span class="quiet">(we promise not to spam you)</span>
-                    </label>
-                  </div>
-                </div>
-
-                <div class="field" style="width:0;opacity:0;display:table-column;">
-                  <div class="control">
-                    <label class="checkbox">
-                      <input id="phone" name="phone" type="checkbox" checked>
-                      If you are a person, do not uncheck this.</span>
-                    </label>
-                  </div>
-                </div>
-
-                {{ cft() }}
-
-                {{ all("Sign Up") }}
-
-            </form>
-            <p><a href='{{url_for("views.login")}}' class="quiet">Already have an account? Login instead!</a></p>
+        <div class="field">
+          <label class="checkbox">
+            <input id="tos" name="tos" type="checkbox" class="checkbox is-success" required>
+            <span class="is-base">I agree to the <a href='{{url_for("views.tos")}}' target="_blank" style="text-decoration: underline;">terms and conditions</a></span>
+          </label>
         </div>
-    </section>
-    <div style="display:none;">
-      <span id="email_form">
-        {{ input(form,'email') }}
-      </span>
-      <span id="password_form">
-        {{ password(form,'password') }}
-        {{ password(form,'password2') }}
-        {{ showPassword() }}
-      </span>
+
+        <div class="field">
+          <label class="checkbox">
+            <input id="marketing" name="marketing" type="checkbox" class="checkbox is-success">
+            Recieve occassional emails <small>(we promise not to spam you)</small>
+          </label>
+        </div>
+
+        {{ honeypot() }}
+
+        {{ cft() }}
+
+        {{ register("Sign Up") }}
+
+      </form>
+      <small><a href='{{url_for("views.login")}}' class="is-quiet">Already have an account? Login instead!</a></small>
     </div>
+  </section>
 {% endblock %}

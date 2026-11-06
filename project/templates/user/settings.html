@@ -13,31 +13,31 @@
 {% from 'macros/form.html' import input, password, showPassword, checkbox, submit with context %}
 {% from 'macros/oauth.html' import oauths, google_link, apple_link with context %}
     <section class="section">
-        <div class="container">
-            <h1 class="title is-1">Settings</h1>
+        <div class="container is-large">
+            <h1>Settings</h1>
             <div class="columns">
-                <div class="column is-one-quarter">
-                    <div id="menu" class="menu">
-                        <p class="menu-label">General</p>
-                        <ul class="menu-list">
+                <div class="column">
+                    <div class="card" id="menu">
+                        <h5 class="label">General</h5>
+                        <ul class="menu">
                             {{ item(name="Account", target="account") }}
                             {{ item(name="Preferences", target="preferences") }}
                             {{ item(name="Manage Subscription", target="subscription") }}
                         </ul>
-                        <p class="menu-label">Profiles</p>
-                        <ul class="menu-list">
+                        <h5 class="label">Profiles</h5>
+                        <ul class="menu">
                             {% for group in current_user.groups %}
                             {{ item(name=group.name, target=group.name) }}
                             {% endfor %}
                         </ul>
-                        <p class="menu-label">Other</p>
-                        <ul class="menu-list">
+                        <h5 class="label">Other</h5>
+                        <ul class="menu">
                             {{ item(name="Close Account", target="close_account") }}
                         </ul>
                     </div>
                 </div>
                 {{ script() }}
-                <div class="column targets">
+                <div class="column flex-10">
                     <div id="account" class="is-hidden">
                         <div class='content'>
                             <h4>Change Email</h4>
@@ -140,7 +140,7 @@
                                         <td colspan="2">Invite</td>
                                         <td><a class="button is-small"
                                             hx-on:click="$('#{{group.name}} #invite').hide();$('#{{group.name}} #invite_input').show();"
-                                            ><span class="icon"><i class="fas fa-plus"></i></span></a></td>
+                                            ><span class="icon"><i class="ti ti-plus"></i></span></a></td>
                                     </tr>
                                     <tr id="invite_input" style="display:none;">
                                         <form action="" method="post"
@@ -154,10 +154,10 @@
                                                 <div class="control has-icons-left">
                                                     <input class="input" id="invite_group_input" maxlength="255" minlength="6" name="email" required="" type="text" value="" placeholder="someone@example.com">
                                                     <span class="icon is-small is-left">
-                                                        <i class="fas fa-envelope"></i>
+                                                        <i class="ti ti-mail"></i>
                                                     </span>
                                                 </div></td>
-                                            <td><button class="button is-small" type="submit"><span class="icon"><i class="fas fa-paper-plane"></i></span></button></td>
+                                            <td><button class="button is-small" type="submit"><span class="icon"><i class="ti ti-send"></i></span></button></td>
                                         </form>
                                     </tr>
                                 </tfoot>
@@ -165,23 +165,23 @@
                                 <tbody>
                                     {% for user in group.users %}
                                     <tr id="{{user.hex}}">
-                                        <td>{% if user == group.owner %}<span class="icon"><i class="fas fa-crown"></i></span> {% endif %}{{user.email}}</td>
-                                        <td><a class="button is-small" {% if user == group.owner or user == current_user %}disabled{% else %}
+                                        <td>{% if user == group.owner %}<span class="icon"><i class="ti ti-crown-filled"></i></span> {% endif %}{{user.email}}</td>
+                                        <td><a class="button is-icon" {% if user == group.owner or user == current_user %}disabled{% else %}
                                             hx-post="{{url_for('profiles_v1.ProfileGroupRemove')}}"
                                             hx-include="#csrf_token"
                                             hx-swap="none"
                                             hx-confirm="Are you sure you wish to remove this user?"
                                             hx-vals='{"user":"{{user.email}}","group":"{{group.name}}"}' 
                                             hx-on::after-request="window.removeUser(event.detail, '{{group.name}}', '{{user.hex}}', '{{user.email}}')"
-                                            {% endif %}><span class="icon"><i class="fas fa-xmark"></i></span></a></td>
-                                        <td><a class="button is-small" {% if user == group.owner or user == current_user %}disabled{% else %}
+                                            {% endif %}><span class="icon"><i class="ti ti-x"></i></span></a></td>
+                                        <td><a class="button is-icon" {% if user == group.owner or user == current_user %}disabled{% else %}
                                             hx-post="{{url_for('profiles_v1.ProfileGroupOwner')}}"
                                             hx-include="#csrf_token"
                                             hx-swap="none"
                                             hx-confirm="Are you sure you wish to make this user the owner of the group? You will no longer be the owner, and this action is irreversible."
                                             hx-vals='{"user":"{{user.email}}","group":"{{group.name}}"}' 
                                             hx-on::after-request="window.promoteUser(event.detail, '{{group.name}}', '{{user.hex}}', '{{user.email}}')"
-                                            {% endif %}><span class="icon"><i class="fas fa-crown"></i></span></a></td>
+                                            {% endif %}><span class="icon"><i class="ti ti-crown-filled"></i></span></a></td>
                                     </tr>
                                     {% endfor %}
                                 </tbody>

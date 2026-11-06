@@ -6,43 +6,29 @@
 {% block title %}Login | {% endblock %}
 
 {% block content %}
-    {% from 'macros/form.html' import input, password, showPassword, checkbox, submit with context %}
-    {% from 'macros/oauth.html' import all %}
-    <section class="section">
-        <div class="container">
-            <h1 class="title is-1">Login</h1>
-            <form action="" method="post" class="block">
-                {{ form.hidden_tag() }}
+  {% from 'macros/form.html' import input, password, showPassword, checkbox, submit, honeypot with context %}
+  {% from 'macros/oauth.html' import login %}
+  <section class="section">
+    <div class="container is-sm content">
+      <h1>Login</h1>
+      <form action="" method="post" x-data="{ local: false }">
+        {{ form.hidden_tag() }}
 
-                <span id="email_form_placement"></span>
+        <template x-if="local">
+          <div class="block">
+            {{ input(form,'email') }}
+            {{ password(form,'password') }}
+            {{ checkbox('remember_me', "Remember Me") }}
+          </div>
+        </template>
 
-                <span id="password_form_placement"></span>
+        {{ honeypot() }}
 
-                <div class="field" style="width:0;opacity:0;display:table-column;">
-                  <div class="control">
-                    <label class="checkbox">
-                      <input id="username" name="username" type="checkbox" checked>
-                      If you are a person, do not uncheck this.</span>
-                    </label>
-                  </div>
-                </div>
-
-                {{ all() }}
-                
-            </form>
-            <div class="content">
-                <p><a href='{{url_for("views.register")}}' class="quiet">Don't have an account? Register instead!</a></p>
-                <p><a href='{{url_for("views.password_request")}}' class="quiet">Forgot your password?</a></p>
-            </div>
-        </div>
-    </section>
-    <div style="display:none;">
-      <span id="email_form">
-        {{ input(form,'email') }}
-      </span>
-      <span id="password_form">
-        {{ password(form,'password') }}
-        {{ checkbox('remember_me', "Remember Me") }}
-      </span>
+        {{ login() }}
+        
+      </form>
+      <small class="block-sm"><a href='{{url_for("views.register")}}' class="is-quiet">Don't have an account? Register instead!</a></small>
+      <small><a href='{{url_for("views.password_request")}}' class="is-quiet">Forgot your password?</a></small>
     </div>
+  </section>
 {% endblock %}

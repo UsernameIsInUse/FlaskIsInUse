@@ -1,7 +1,7 @@
 from flask import Flask
 
 from config import Config
-from project.extensions import flashy, ipban, csrf, db, migrate, admin, login, squeeze, toolbar, authorize, mail, api, oauth
+from project.extensions import flashy, ipban, csrf, db, migrate, admin, login, squeeze, toolbar, authorize, mail, api, oauth, compress
 import flask_noai
 from flask_cors import CORS
 
@@ -19,10 +19,11 @@ def create_app(config_class=Config):
   admin.init_app(app)
   login.init_app(app)
   flashy.init_app(app)
-  toolbar.init_app(app)
   authorize.init_app(app)
   mail.init_app(app)
   api.init_app(app)
+  compress.init_app(app)
+  toolbar.init_app(app)
   CORS(app,resources={
     r"/subscription/*": {"origins": "https://checkout.stripe.com"},
     r"/settings": {"origins": "https://checkout.stripe.com"}
@@ -67,7 +68,6 @@ def create_app(config_class=Config):
     return dict(
       version=app.config['APP_VERSION'],
       app_name=app.config['APP_NAME'],
-      font_awesome=app.config['FA'],
       typekit=app.config['TYPEKIT']
     )
   

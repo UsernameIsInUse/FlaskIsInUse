@@ -69,7 +69,7 @@
           <!-- Header Section -->
           <tr>
             <td align="center" bgcolor="#1c282e" style="padding: 20px; color: #feffff; font-family: Arial, sans-serif; font-size: 24px;">
-              <img src='{{url_for("static", filename="img/logo.png", _external=True)}}' style='width:150px;' alt="vfolio Logo">
+              <img src='{{url_for("static", filename="img/logo.png", _external=True)}}' style='width:150px;' alt="FlaskIsInUse Logo">
             </td>
           </tr>
 
@@ -99,8 +99,8 @@
           <tr>
             <td align="center" bgcolor="#f4f4f4" style="padding: 20px; font-family: Arial, sans-serif; font-size: 12px; line-height: 18px; color: #666666; max-width:300px;">
               <p>Made by Alex.</p>
-              <p>{% if unsubscribe %}You are receiving this email because you opted-in to emails about vfolio.<br>You can change what emails you receive on your <a href="{{url_for('views.login', _external=True)}}" target="_blank" style="color: #666666;">settings page</a>, or <a href="{{url_for('email_unsubscribe', token=unsubscribe, _external=True)}}" target="_blank" style="color: #007BFF; text-decoration: none;">Unsubscribe</a>{% endif %}</p>
-              <p>© vfolio | 2522 Bedford Ave, Brooklyn, NY 11226</p>
+              <p>{% if unsubscribe %}You are receiving this email because you opted-in to emails about FlaskIsInUse.<br>You can change what emails you receive on your <a href="{{url_for('views.login', _external=True)}}" target="_blank" style="color: #666666;">settings page</a>, or <a href="{{url_for('email_unsubscribe', token=unsubscribe, _external=True)}}" target="_blank" style="color: #007BFF; text-decoration: none;">Unsubscribe</a>{% endif %}</p>
+              <p>© FlaskIsInUse | Address</p>
             </td>
           </tr>
         </table>

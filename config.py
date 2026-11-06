@@ -20,7 +20,6 @@ class Config:
   SECURITY_PASSWORD_SALT = environ['SALT']
   APP_VERSION = "Alpha 0.1.0"
   APP_NAME = "FlaskApp"
-  FA = environ['FA']
   TYPEKIT = environ['TYPEKIT']
   MAIL_SERVER = "smtp.gmail.com"
   MAIL_PORT = 465

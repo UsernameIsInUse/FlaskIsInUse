@@ -46,7 +46,7 @@ def group_invite(group:str, token:str):
     log(request=request, user=current_user, description=f'Group {group} invite confirmation succeeded')
     flash(f"Successfully joined {group}.", "success")
     return redirect(url_for("views.user_settings"))
-  flash("The confirmation link is invalid or has expired.", "info")
+  flash("The confirmation link is invalid or has expired.", "warning")
   log(request=request, user=current_user, description=f'Group {group} invite confirmation failed')
   return redirect(url_for("views.user_settings"))
   

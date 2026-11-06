@@ -5,11 +5,11 @@ from wtforms.validators import DataRequired, Length, ValidationError, EqualTo, E
 
 class LoginForm(FlaskForm):
   email = StringField('Email',
-                         validators=[Optional(),
+                         validators=[DataRequired(),
                                      Length(min=6, max=255),
                                      Email()])
   password = PasswordField('Password',
-                           validators=[Optional(),
+                           validators=[DataRequired(),
                                        Length(min=8, max=255)])
   remember_me = BooleanField("Remember Me")
   submit = SubmitField('Login')
