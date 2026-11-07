@@ -20,7 +20,7 @@ class UserResetPassword(MethodView):
     data = request.get_json()
     email = data.get('email')
     send_password_reset_email(email)
-    return {'status':202, 'message':'If the email exists, instructions were sent to reset password.'}, 202
+    return {'status':202, 'message':'If the email exists, instructions were sent to reset the password.'}, 202
 
 @bp.route('/marketing')
 class UserMarketingSwitch(MethodView):

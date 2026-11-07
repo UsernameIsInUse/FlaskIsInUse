@@ -80,39 +80,42 @@
     </script>
 
     <script> // Ajax
-      window.ajax = async function(url, data = {}, method = 'POST') {
+      async function ajax(url, data = {}, method = "POST", csrfToken = null) {
+        console.log(url)
+        console.log(data)
+        console.log(method)
+        console.log(csrfToken)
         try {
-          const csrfToken = document.querySelector(
-            'input[name="csrf_token"]'
-          )?.value;
-
           const response = await fetch(url, {
-            method: method,
+            method,
             headers: {
-              'Content-Type': 'application/json',
-              'Accept': 'application/json'
-              'X-CSRFToken': csrfToken
+              "Content-Type": "application/json",
+              "X-CSRFToken": csrfToken,
             },
-            body: method === 'GET' ? undefined : JSON.stringify(data)
+            credentials: "same-origin",
+            body: method.toUpperCase() !== "GET" ? JSON.stringify(data) : undefined
           });
 
-          const result = await response.json();
-
-          if (result.message) {
-            if (!response.ok) {
-              notify(result.message, "warning") ;
-            } else {
-              notify(result.message, "info");
-            }
-          }
-
-          return result;
-
+          const responseData = await response.json();
+          
+          if (response.ok) {
+            notify(responseData.message, response.ok ? "info" : "warning");
+          } else {
+            throw new Error();
+          };
         } catch (error) {
-          notify("Something went wrong with your request.", "danger");
-          throw error;
-        }
+          notify("Something went wrong.", "danger");
+        };
       };
+
+      document.addEventListener('submit', async function(e) {
+        const form = e.target.closest("form[data-ajax]");
+        if (!form) return;
+        e.preventDefault();
+        const formData = Object.fromEntries(new FormData(form));
+        const csrfToken = formData.csrf_token || "";
+        await ajax(form.action, formData, form.method.toUpperCase(), csrfToken)
+      })
     </script>
   </head>
 
@@ -184,6 +187,22 @@
           x-transition:leave.duration.500ms
         ></li>
       </template>
+      <script>
+        function notify(message, color, url=null) {
+          const { notifs, linkNotifs } = Alpine.$data(
+            document.getElementById("notifications")
+          );
+          const list = url ? linkNotifs : notifs;
+          const last = list[list.length - 1];
+
+          list.push({
+            id: last ? last.id + 1 : 1,
+            message,
+            color,
+            ...(url ? { url } : {}),
+          });
+        }
+      </script>
     </ul>
 
     <span class="chip is-quiet is-info version">{{version}}</span>

@@ -13,7 +13,14 @@ hide
 
 {% block content %}
 <section class="section">
-  <input hidden hx-post={{url_for('users_v1.UserSendEmailConfirmation')}} hx-include="#csrf_token" hx-swap="none" hx-trigger="load"> <!-- // REPLACE WITH VANILLA/APLINE JS -- CONSIDER ALPINE AJAX -->
+  <input
+    hidden
+    x-data="{
+      url: '{{url_for('users_v1.UserSendEmailConfirmation')}}',
+      csrfToken: '{{ csrf_token() }}'
+    }"
+    x-init="ajax(url, {}, 'POST', csrfToken)"
+  >
   {% from 'macros/form.html' import input, submit with context %}
   <div class="container is-sm content">
     <h1>Confirm your Email</h1>
