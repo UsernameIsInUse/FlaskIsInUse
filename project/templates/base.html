@@ -108,13 +108,17 @@
         };
       };
 
+      async function submitAjaxForm(form) {
+        const formData = Object.fromEntries(new FormData(form));
+        const csrfToken = formData.csrf_token || "{{ csrf_token() }}";
+        return await ajax(form.action, formData, form.method.toUpperCase(), csrfToken)
+      }
+
       document.addEventListener('submit', async function(e) {
         const form = e.target.closest("form[data-ajax]");
         if (!form) return;
         e.preventDefault();
-        const formData = Object.fromEntries(new FormData(form));
-        const csrfToken = formData.csrf_token || '{{ csrf_token() }}';
-        return await ajax(form.action, formData, form.method.toUpperCase(), csrfToken)
+        await submitAjaxForm(form);
       })
     </script>
   </head>

@@ -1,27 +1,27 @@
 from flask_login import UserMixin
-from flask_authorize import AllowancesMixin
 
 from project.extensions import db
 from project.utils import log
-from project.access_control import is_admin
 from project.stripe import stripe
 
 from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import Uuid
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timezone
 from typing import List, Optional
+import uuid
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-  from project.models import Log, UserGroup, UserRole
+  from project.models import Log, UserRole, UserProfile
 
 class User(UserMixin, db.Model):
   __tablename__ = 'users'
-  id: Mapped[int] = mapped_column(primary_key=True)
+  id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid7)
   date_created: Mapped[datetime] = mapped_column(default=lambda: datetime.now(timezone.utc))
   logs: Mapped[List["Log"]] = db.relationship(backref='user', lazy=True)
   email: Mapped[str] = mapped_column(db.String(255), unique=True)
-  
+    
   # local auth
   hashed_pass: Mapped[Optional[str]] = mapped_column(db.String(255))
   unconfirmed_email: Mapped[Optional[str]] = mapped_column(db.String(255))
@@ -33,7 +33,7 @@ class User(UserMixin, db.Model):
   
   # permissions
   role_links: Mapped[List["UserRole"]] = db.relationship(back_populates="user")
-  group_links: Mapped[List["UserGroup"]] = db.relationship(back_populates="user", cascade="all, delete-orphan")
+  profile_links: Mapped[List["UserProfile"]] = db.relationship(back_populates="user")
   
   # user data / settings
   tos: Mapped[bool] = mapped_column(default=True)
@@ -58,20 +58,12 @@ class User(UserMixin, db.Model):
     return [link.role for link in self.role_links]
   
   @property
-  def groups(self) -> list:
-    return [link.group for link in self.group_links]
-  
-  @property
-  def owned_groups(self) -> list:
-    return [group for group in self.groups if group.owner == self]
-  
-  @property
   def profiles(self) -> list:
-    return [group.profile for group in self.groups]
+    return [link.profile for link in self.profile_links]
   
   @property
-  def is_admin(self):
-    return is_admin(self)
+  def owned_profiles(self) -> list:
+    return [link.profile for link in self.profile_links if link.owner]
   
   @property
   def hex(self):
@@ -108,7 +100,8 @@ class User(UserMixin, db.Model):
     
 class OAuthAccount(db.Model):
   __tablename__ = "oauth_accounts"
-  id: Mapped[int] = mapped_column(primary_key=True)
+  id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid7)
+  date_created: Mapped[datetime] = mapped_column(default=lambda: datetime.now(timezone.utc))
   user_id: Mapped[int] = mapped_column(db.ForeignKey("users.id"))
   user: Mapped["User"] = db.relationship(back_populates="oauth_accounts")
   
@@ -123,10 +116,9 @@ class OAuthAccount(db.Model):
     return f"{self.user.email}"
   
 
-class Role(db.Model, AllowancesMixin):
+class Role(db.Model):
   __tablename__ = 'roles'
-  __allowances__ = {}
-  id: Mapped[int] = mapped_column(primary_key=True)
+  id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid7)
   name: Mapped[str] = mapped_column(db.String(255), unique=True)
   date_created: Mapped[datetime] = mapped_column(default=lambda: datetime.now(timezone.utc))
   user_links: Mapped[List["UserRole"]] = db.relationship(back_populates="role", cascade="all, delete-orphan")
@@ -140,7 +132,7 @@ class Role(db.Model, AllowancesMixin):
   
 class StripeCustomer(db.Model):
   __tablename__ = "stripe_customers"
-  id: Mapped[int] = mapped_column(primary_key=True)
+  id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid7)
   user_id: Mapped[int] = mapped_column(db.ForeignKey('users.id'))
   stripe_customer_id: Mapped[str] = mapped_column(db.String(255))
   stripe_subscription_id: Mapped[str] = mapped_column(db.String(255))

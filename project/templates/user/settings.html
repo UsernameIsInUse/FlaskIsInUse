@@ -26,8 +26,8 @@
           </ul>
           <h5>Profiles</h5>
           <ul class="menu is-ghost">
-            {% for group in current_user.groups %}
-            {{ item(name=group.name, target=group.name) }}
+            {% for profile in current_user.profiles %}
+            {{ item(name=profile.username, target=profile.username) }}
             {% endfor %}
           </ul>
           <h5>Other</h5>
@@ -99,8 +99,8 @@
             {% endif %}
           </div>
 
-          {% for group in current_user.groups %}
-          <div id="{{group.name}}" x-show="current === '{{group.name}}'">
+          {% for profile in current_user.profiles %}
+          <div id="{{profile.username}}" x-show="current === '{{profile.username}}'">
             <h4>Users</h4>
             <table
               class="is-striped"
@@ -110,19 +110,19 @@
               <thead>
                 <tr>
                   <th>User</th>
-                  {% if current_user == group.owner %}
-                  <th><abbr title="Remove">Rm</abbr></th>
-                  <th><abbr title="Make Owner">Own</abbr></th>
+                  {% if current_user in profile.owners %}
+                  <th><abbr title="Membership">Mem</abbr></th>
+                  <th><abbr title="Ownership">Own</abbr></th>
                   {% endif %}
                 </tr>
               </thead>
 
-              {% if current_user == group.owner %}
+              {% if current_user in profile.owners %}
                 <tfoot>
                   <tr>
-                    <form data-ajax action="{{url_for('profiles_v1.ProfileGroupAdd')}}" method="POST">
-                      <input id="group" name="group" type="hidden" value="{{group.name}}" required>
-                      <td colspan="2"><input class="input" style="font-weight:var(--weight-normal)" id="invite_group_input" maxlength="255" minlength="6" name="email" required="" type="text" value="" placeholder="someone@example.com"></td>
+                    <form data-ajax action="{{url_for('profiles_v1.ProfileUserAdd')}}" method="POST">
+                      <input id="profile" name="profile" type="hidden" value="{{profile.username}}" required>
+                      <td colspan="2"><input class="input" style="font-weight:var(--weight-normal)" maxlength="255" minlength="6" name="email" required="" type="text" value="" placeholder="someone@example.com"></td>
                       <td><button class="button is-icon" type="submit"><span class="icon"><i class="ti ti-send"></i></span></button></td>
                     </form>
                   </tr>
@@ -130,44 +130,57 @@
                 {% endif %}
 
                 <tbody>
-                  {% for user in group.users %}
+                  {% for user in profile.users %}
                   <tr id="{{user.hex}}">
-                    <td><span class="group">
-                      {% if user == group.owner %}<span class="icon"><i class="ti ti-crown-filled"></i></span>{% endif %}
+                    <td><span class="profile">
+                      {% if user in profile.owners %}<span class="icon"><i class="ti ti-crown-filled"></i></span>{% endif %}
                       <span>{{user.email}}</span>
                     </span></td>
-                    {% if current_user == group.owner %}
+                    {% if current_user in profile.owners %}
                     <td>
                       <button class="button is-icon is-danger"
-                      {% if user == group.owner or user == current_user %}disabled{% else %}
-                      x-data="{
-                        url: '{{url_for('profiles_v1.ProfileGroupRemove')}}',
-                        csrfToken: '{{ csrf_token() }}',
-                        data: { email : '{{user.email}}', group: '{{group.name}}' },
-                        id: '{{user.hex}}'
-                      }"
-                      @click="if (confirm('Are you sure you wish you remove this user?')) {
-                        if ( ajax(url, data, 'POST', csrfToken) ) {
-                          document.getElementById(id).remove()
-                        }
-                      }"
+                      {% if user == current_user %}disabled{% else %}
+                        x-data="{
+                          url: '{{url_for('profiles_v1.ProfileUserRemove')}}',
+                          csrfToken: '{{ csrf_token() }}',
+                          data: { email : '{{user.email}}', profile: '{{profile.username}}' },
+                          id: '{{user.hex}}'
+                        }"
+                        @click="if (confirm('Are you sure you want you remove this user?')) {
+                          if ( ajax(url, data, 'POST', csrfToken) ) {
+                            document.getElementById(id).remove()
+                          }
+                        }"
                       {% endif %}
                       ><span class="icon"><i class="ti ti-x"></i></span></button>
                     </td>
 
                     <td>
                       <button class="button is-icon is-warning"
-                      {% if user == group.owner or user == current_user %}disabled{% else %}
-                      x-data="{
-                        url: '{{url_for('profiles_v1.ProfileGroupOwner')}}',
-                        csrfToken: '{{ csrf_token() }}',
-                        data: { email : '{{user.email}}', group: '{{group.name}}' },
-                      }"
-                      @click="if (confirm('Are you sure you wish invite this user to be the owner of the group? You will no longer be the owner, and this action is irreversible.')) {
-                        ajax(url, data, 'POST', csrfToken);
-                      }"
+                      {% if user == current_user %}disabled{% endif %}{% if user not in profile.owners %}
+                        x-data="{
+                          url: '{{url_for('profiles_v1.ProfileUserOwnerAdd')}}',
+                          csrfToken: '{{ csrf_token() }}',
+                          data: { email : '{{user.email}}', profile: '{{profile.username}}' },
+                        }"
+                        @click="if (confirm('Are you sure you want to invite this user to be an owner of the profile? This action is irreversible.')) {
+                          ajax(url, data, 'POST', csrfToken);
+                        }"
+                      ><span class="icon"><i class="ti ti-crown-filled"></i></span>
+                      {% else %}
+                        x-data="{
+                          url: '{{url_for('profiles_v1.ProfileUserOwnerRemove')}}',
+                          csrfToken: '{{ csrf_token() }}',
+                          data: { email : '{{user.email}}', profile: '{{profile.username}}' },
+                        }"
+                        @click="if (confirm('Are you sure you want to remove this user as an owner of the profile?')) {
+                          if ( ajax(url, data, 'POST', csrfToken) ) {
+                            location.reload();
+                          }
+                        }"
+                      ><span class="icon"><i class="ti ti-x"></i></span>
                       {% endif %}
-                      ><span class="icon"><i class="ti ti-crown-filled"></i></span></button>
+                      </button>
                     </td>
 
                     {% endif %}

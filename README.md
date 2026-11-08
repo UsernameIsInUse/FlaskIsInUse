@@ -16,7 +16,7 @@ It has all the things I consider standard, including:
         
     *   Custom Profile Management (Multiple profiles per user)
         
-    *   Group and Role Management with [Flask-Authorize](https://github.com/bprinty/Flask-Authorize/tree/main)
+    *   Custom User Role Management
         
     *   Custom Login, Email/Password Reset, Confirmation, etc with [Flask-Wtf](https://github.com/pallets-eco/flask-wtf) and [Flask-Mail](https://pypi.org/project/Flask-Mail/)
         

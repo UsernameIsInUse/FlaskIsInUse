@@ -13,14 +13,15 @@ from project.services import setup_user, send_password_reset_email
 from project.extensions import ipban
 
 from datetime import datetime
+import uuid
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
   from flask import Request
 
 @login.user_loader
-def load_user(id:int) -> User:
-  return User.query.get(int(id))
+def load_user(id) -> User:
+  return db.session.get(User, uuid.UUID(id))
 
 @login.needs_refresh_handler
 def refresh() -> "Request":
@@ -34,6 +35,7 @@ def refresh() -> "Request":
 def login():
   form = LoginForm()
   if form.validate_on_submit():
+    print('validated')
     
     # Check Honeypot
     honeypot = request.form.get('phone')
@@ -51,11 +53,15 @@ def login():
       user = User.query.filter_by(email=form.email.data).first()
       if user and user.hashed_pass:
         if user.check_password(form.password.data):
+          print('everything correct')
           login_user(user, remember=form.remember_me.data)
           log(request=request, user=user, description='Logged in via local auth')
           next = request.args.get("next")
+          print('logged in')
           if not user.confirmed:
+            print('not confirmed')
             return redirect(url_for('views.confirm'))
+          print('confirmed')
           return redirect(next or url_for('views.user_settings'))
         else:
           flash('Something went wrong. Use another login method or register instead?', 'warning', url=url_for('views.register'))

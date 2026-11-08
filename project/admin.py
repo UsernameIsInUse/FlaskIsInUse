@@ -1,6 +1,7 @@
-from flask import Blueprint, abort
+from flask import Blueprint, redirect, url_for, request, abort
 from flask_admin.contrib.sqla import ModelView
 from flask_admin.menu import MenuLink
+from flask_admin import AdminIndexView
 from flask_login import current_user
 
 from project import admin, db
@@ -10,6 +11,18 @@ from project.access_control import login_redirect, is_admin
 bp = Blueprint('admin_app', __name__)
 
 admin.add_link(MenuLink(name="Home", url='/'))
+
+class MyAdminIndexView(AdminIndexView):
+  def is_visible(self):
+    return False
+  def is_accessible(self):
+    return current_user.is_authenticated and is_admin()
+  def inaccessible_callback(self, name, **kwargs):
+    if current_user.is_authenticated:
+      return abort(403)
+    return redirect(url_for('views.login', next=request.full_path))
+
+admin.index_view = MyAdminIndexView
 
 class CustomBaseModelView(ModelView):
   page_size = 50
@@ -27,26 +40,19 @@ class CustomBaseModelView(ModelView):
     return login_redirect()
   
 class UserView(CustomBaseModelView):
-  column_list = ['email', 'is_pro', 'confirmed', 'marketing', 'roles', 'profile', 'groups', 'oauth_accounts', 'date_created']
+  column_list = ['email', 'is_pro', 'confirmed', 'marketing', 'roles', 'profiles', 'oauth_accounts', 'date_created']
   column_searchable_list = ['email']
   form_columns = ['email', 'confirmed', 'pro_override']
   can_delete = False
 
 class ProfileView(CustomBaseModelView):
-  column_list = ['username', 'owner', 'group', 'users', 'date_created']
+  column_list = ['username', 'owners', 'users', 'date_created']
   column_searchable_list = ['username']
-  form_columns = ['owner']
   can_delete = False
   
 class RoleView(CustomBaseModelView):
   column_list = ['name', 'users', 'date_created']
   column_searchable_list = ['name']
-  
-class GroupView(CustomBaseModelView):
-  column_list = ['name', 'profile', 'users', 'date_created']
-  column_searchable_list = ['name']
-  can_edit = False
-  can_delete = False
   
 class StripeView(CustomBaseModelView):
   column_list = ['user','stripe_customer_id','stripe_subscription_id','active']
@@ -66,7 +72,6 @@ admin.add_view(UserView(User, db.session, category="Users"))
 admin.add_view(OAuthView(OAuthAccount, db.session, category="Users"))
 admin.add_view(ProfileView(Profile, db.session, category="Users"))
 admin.add_view(RoleView(Role, db.session, category="Users"))
-admin.add_view(GroupView(Group, db.session, category="Users"))
 admin.add_view(StripeView(StripeCustomer, db.session, category="Users"))
 admin.add_view(LogView(Log, db.session, category="Utils"))
 

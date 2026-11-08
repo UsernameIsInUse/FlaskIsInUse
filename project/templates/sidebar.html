@@ -13,8 +13,8 @@
         <h5 class="text-primary-vivid"><span class="group"><span class="icon"><i class="ti ti-click-filled"></i></span><span>Profiles</span></span></h5>
         <ul class="menu is-primary is-ghost">
             <li><ul>
-                {% for group in current_user.groups %}
-                <li><a href="#">{{group.name}}</a></li>
+                {% for profile in current_user.profiles %}
+                <li><a href="#">{{profile.username}}</a></li>
                 {% endfor %}
             </ul></li>
         </ul>

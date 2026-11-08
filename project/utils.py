@@ -10,7 +10,7 @@ from os import environ
 from typing import TYPE_CHECKING, Optional
 if TYPE_CHECKING:
   from flask import Request
-  from project.models import User, Group, Profile
+  from project.models import User, Profile
 
 def db_add(object) -> bool:
   """Adds the given object to the database and commits.
@@ -83,18 +83,6 @@ def get_profile(username:str) -> "Profile":
   from project.models import Profile
   return Profile.query.filter_by(username=username).first_or_404()
 
-def get_group(username:str) -> "Group":
-  """Returns a group from a username.
-
-  Args:
-      username (str): Username of the Group.
-
-  Returns:
-      Group
-  """
-  from project.models import Group
-  return Group.query.filter_by(name=username).first_or_404()
-
 def reset_database(dev=False) -> bool:
   """Resets the database.
 
@@ -114,16 +102,14 @@ def reset_database(dev=False) -> bool:
   
 def dev_database():
   """Creates an Admin user from environment variables."""
-  from project.models import User, Role, UserRole, Profile, Group, UserGroup
+  from project.models import User, Role, UserRole, Profile, UserProfile
   user = User(email=environ['DEV_EMAIL'], confirmed=True)
   user.set_password(environ['DEV_PASS'])
   db_add(user)
-  group = Group(name=environ["DEV_USER"])
-  db_add(group)
-  profile = Profile(username=environ["DEV_USER"], group=group, owner=user)
+  profile = Profile(username=environ["DEV_USER"])
   db_add(profile)
-  usergroup = UserGroup(user=user, group=group)
-  db_add(usergroup)
+  userprofile = UserProfile(user=user, profile=profile, owner=True)
+  db_add(userprofile)
   admin = Role(name="Admin")
   db_add(admin)
   userrole = UserRole(user=user, role=admin)

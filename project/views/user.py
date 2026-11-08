@@ -1,4 +1,4 @@
-from flask import render_template, redirect, url_for, request
+from flask import render_template, redirect, url_for, request, abort
 from flask_login import current_user, login_required
 from flask_flashy import flash
 
@@ -7,7 +7,7 @@ from project.views import bp
 from project.access_control import confirm_token
 from project.utils import log
 from project.forms import EmailChangeForm
-from project.models import User, Group, UserGroup
+from project.models import User, Profile, UserProfile
 from project.services import send_email_changed_email
 
 @bp.route('/settings/', methods=['GET', 'POST'])
@@ -41,35 +41,48 @@ def user_settings():
   email_form = EmailChangeForm()
   return render_template('user/settings.html', email_form=email_form, subscription=current_user.stripe)
 
-@bp.route('/settings/g/<group>/invite/<token>')
+@bp.route('/settings/p/<profile>/invite/<token>')
 @login_required
-def group_invite(group:str, token:str):
+def profile_invite(profile:str, token:str):
   email = confirm_token(token, expiration=604800)
+  if not email:
+    flash("The confirmation link is invalid or has expired.", "warning")
+    log(request=request, user=current_user, description=f'Profile {profile} invite confirmation failed')
+    return redirect(url_for("views.user_settings"))
   user = User.query.filter_by(email=email).first()
-  group = Group.query.filter_by(name=group).first()
-  if current_user == user and user not in group.users:
-    ug = UserGroup(user=current_user, group=group)
-    db.session.add(ug)
+  profile = Profile.query.filter_by(username=profile).first()
+  if current_user != user:
+    abort(403)
+  if user not in profile.users:
+    userprofile = UserProfile(user=user, profile=profile)
+    db.session.add(userprofile)
     db.session.commit()
-    log(request=request, user=current_user, description=f'Group {group} invite confirmation succeeded')
-    flash(f"Successfully joined {group}.", "success")
+    log(request=request, user=current_user, description=f'Profile {profile} invite confirmation succeeded')
+    flash(f"Successfully joined {profile}.", "success")
     return redirect(url_for("views.user_settings"))
   flash("The confirmation link is invalid or has expired.", "warning")
-  log(request=request, user=current_user, description=f'Group {group} invite confirmation failed')
+  log(request=request, user=current_user, description=f'Profile {profile} invite confirmation failed')
   return redirect(url_for("views.user_settings"))
   
-@bp.route('/settings/g/<group>/owner_invite/<token>')
+@bp.route('/settings/p/<profile>/owner_invite/<token>')
 @login_required
-def group_owner_invite(group:str, token:str):
+def profile_owner_invite(profile:str, token:str):
   email = confirm_token(token, expiration=604800)
+  if not email:
+    flash("The confirmation link is invalid or has expired.", "warning")
+    log(request=request, user=current_user, description=f'Profile {profile} ownership invite confirmation failed')
+    return redirect(url_for("views.user_settings"))
   user = User.query.filter_by(email=email).first()
-  group = Group.query.filter_by(name=group).first()
-  if current_user == user and user != group.owner:
-    group.profile.owner = current_user
+  profile = Profile.query.filter_by(username=profile).first()
+  userprofile = UserProfile.query.filter_by(user=user, profile=profile).first()
+  if current_user != user:
+    abort(403)
+  if not userprofile.owner:
+    userprofile.owner = True
     db.session.commit()
-    log(request=request, user=current_user, description=f'Group {group} ownership invite confirmation succeeded')
-    flash(f"Successfully became owner of {group}.", "success")
+    log(request=request, user=current_user, description=f'Profile {profile} ownership invite confirmation succeeded')
+    flash(f"Successfully became owner of {profile}.", "success")
     return redirect(url_for("views.user_settings"))
   flash("The confirmation link is invalid or has expired.", "info")
-  log(request=request, user=current_user, description=f'Group {group} ownership invite confirmation failed')
+  log(request=request, user=current_user, description=f'Profile {profile} ownership invite confirmation failed')
   return redirect(url_for("views.user_settings"))

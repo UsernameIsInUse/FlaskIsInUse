@@ -2,7 +2,6 @@ from flask import abort, redirect, request, url_for, current_app
 from flask_login import current_user
 from flask_flashy import flash
 
-from project import authorize
 from project.utils import log
 
 from functools import wraps
@@ -13,6 +12,7 @@ from typing import TYPE_CHECKING, Optional
 if TYPE_CHECKING:
   from project.models import User
   from flask import Response
+from project.models import Role, Profile
 
 def is_admin(user:"User"=current_user) -> bool:
   """Checks if the User has the Admin role.
@@ -23,7 +23,44 @@ def is_admin(user:"User"=current_user) -> bool:
   Returns:
       bool: Whether or not the User has the Admin role.
   """
-  return authorize.has_role('Admin')(user)
+  if not user.is_authenticated:
+    return False
+  admin = Role.query.filter_by(name="Admin").first()
+  if admin in user.roles:
+    return True
+  return False
+
+def is_member(profile:"Profile", user:"User"=current_user) -> bool:
+  """Checks if the User is a member of a profile.
+
+  Args:
+      profile (Profile): The Profile to check.
+      user (User, optional): The User to check. Defaults to current_user.
+
+  Returns:
+      bool: Whether or not the User has the Admin role.
+  """
+  if not user.is_authenticated:
+    return False
+  if user in profile.users:
+    return True
+  return False
+
+def is_owner(profile:"Profile", user:"User"=current_user) -> bool:
+  """Checks if the User is a member of a profile.
+
+  Args:
+      profile (Profile): The Profile to check.
+      user (User, optional): The User to check. Defaults to current_user.
+
+  Returns:
+      bool: Whether or not the User has the Admin role.
+  """
+  if not user.is_authenticated:
+    return False
+  if user in profile.owners:
+    return True
+  return False
 
 def admin_check_decorator(f):
   @wraps(f)
@@ -36,13 +73,28 @@ def admin_check_decorator(f):
     return f(*args, **kwargs)
   return decorated_function
 
-def user_check_decorator(f):
+def member_check_decorator(f):
   @wraps(f)
   def decorated_function(*args, **kwargs):
-    """The user must be authenticated and belong to the profile group."""
+    """The user must be authenticated and belong to the profile."""
     if not current_user.is_authenticated:
       return login_redirect()
-    if not authorize.in_group(kwargs.get("username")):
+    kwargs.get("username")
+    profile = Profile.query.filter_by(name=kwargs.get("username")).first()
+    if not is_member(profile) and not is_admin():
+      abort(403)
+    return f(*args, **kwargs)
+  return decorated_function
+
+def owner_check_decorator(f):
+  @wraps(f)
+  def decorated_function(*args, **kwargs):
+    """The user must be authenticated and belong to the profile."""
+    if not current_user.is_authenticated:
+      return login_redirect()
+    kwargs.get("username")
+    profile = Profile.query.filter_by(name=kwargs.get("username")).first()
+    if not is_owner(profile) and not is_admin():
       abort(403)
     return f(*args, **kwargs)
   return decorated_function
