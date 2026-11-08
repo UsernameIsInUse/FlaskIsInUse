@@ -9,196 +9,183 @@
 {% block title %}Settings | {% endblock %}
 
 {% block content %}
-{% from 'macros/settings.html' import item, script %}
+{% from 'macros/settings.html' import item %}
 {% from 'macros/form.html' import input, password, showPassword, checkbox, submit with context %}
-{% from 'macros/oauth.html' import oauths, google_link, apple_link with context %}
-    <section class="section">
-        <div class="container is-large">
-            <h1>Settings</h1>
-            <div class="columns">
-                <div class="column">
-                    <div class="card" id="menu">
-                        <h5 class="label">General</h5>
-                        <ul class="menu">
-                            {{ item(name="Account", target="account") }}
-                            {{ item(name="Preferences", target="preferences") }}
-                            {{ item(name="Manage Subscription", target="subscription") }}
-                        </ul>
-                        <h5 class="label">Profiles</h5>
-                        <ul class="menu">
-                            {% for group in current_user.groups %}
-                            {{ item(name=group.name, target=group.name) }}
-                            {% endfor %}
-                        </ul>
-                        <h5 class="label">Other</h5>
-                        <ul class="menu">
-                            {{ item(name="Close Account", target="close_account") }}
-                        </ul>
-                    </div>
-                </div>
-                {{ script() }}
-                <div class="column flex-10">
-                    <div id="account" class="is-hidden">
-                        <div class='content'>
-                            <h4>Change Email</h4>
-                            <form action="" method="post" class="block">
-                                {{ email_form.hidden_tag() }}
+{% from 'macros/oauth.html' import oauths, google_link with context %}
+  <section class="section" x-data="{ current: window.location.hash.substring(1) || 'account' }">
+    <div class="container">
+      <h1>Settings</h1>
+      <div class="columns is-gap-lg">
 
-                                {{ input(email_form,'email') }}
-
-                                {{ submit('submit', 'Submit', 'primary') }}
-                            </form>
-                            <hr>
-                            <h4>Change Password</h4>
-                            <a class="button is-primary" href={{url_for('views.password_request_send', email=current_user.email)}}>Reset Password</a>
-                            <hr>
-                            <h4>One-Click Sign In</h4>
-                            <div class="buttons">
-                                {% if current_user.google %}
-                                {{google_link('Disconnect', url_for('views.login_oauth', provider='google', disconnect='true'))}}
-                                {% else %}
-                                {{google_link('Connect', url_for('views.login_oauth', provider='google', connect='true'))}}
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-                    <script>
-                        window.handleResponse = function (detail, success) {
-                            if (detail.successful) {
-                                console.log("Success:", detail.xhr.response);
-                                window.flash(success, category='success');
-                            } else {
-                                console.log("Error:", detail.xhr.response);
-                                window.flash('Something went wrong.', category='danger');
-                            };
-                        };
-                    </script>
-                    <div id="preferences" class="is-hidden">
-                        <div class='content'>
-                            <h4>Marketing Preferences</h4>
-                            <div class="control">
-                                <label class="checkbox">
-                                <input id="marketing" name="marketing" type="checkbox" {% if current_user.marketing %}checked{% endif %}
-                                    hx-patch="{{url_for('users_v1.UserMarketingSwitch')}}"
-                                    hx-include="#csrf_token"
-                                    hx-swap="none"
-                                    hx-on::after-request="window.handleResponse(event.detail, 'Updated marketing preferences.')">
-                                Recieve occassional emails <span class="quiet">(we promise not to spam you)</span>
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                    <div id="subscription" class="is-hidden">
-                        <div class="content">
-                            <h4>Manage Subscription</h4>
-                            {% if not current_user.pro_override %}
-                                {% if current_user.stripe%}
-                                    {% if current_user.stripe.active %}
-                                    <a class="credit portal">Manage Subscription</a>
-                                    {% else %}
-                                    <a class="credit portal">View Invoice History</a>
-                                    {% endif %}    
-                                {% endif %}
-                                {% if not current_user.stripe or not current_user.stripe.active %}
-                                <a style="cursor:pointer;" class="credit monthly">Get Started - Monthly</a>
-                                <a style="cursor:pointer;" class="credit yearly">Get Started - Yearly</a>
-                                {% endif %}
-                            {% else %}
-                            <p>Subscribed for free! Congrats!</p>
-                            {% endif %}
-                        </div>
-                    </div>
-                    <script>
-                        window.removeUser = function (detail, group, user, email) {
-                            if (detail.successful) {
-                                $("#" + group + " #" + user).remove()
-                            };
-                            window.handleResponse(detail, 'Removed ' + email + ' from ' + group + '.');
-                        };
-                        window.addUser = function (detail, group, email) {
-                            window.handleResponse(detail, 'Invited ' + email + ' to ' + group + '.');
-                        };
-                        window.promoteUser = function (detail, group, user, email) {
-                            window.handleResponse(detail, 'Invited ' + email + ' to be the owner of ' + group + '.');
-                        };
-                    </script>
-                    {% for group in current_user.groups %}
-                    <div id="{{group.name}}" class="is-hidden">
-                        <div class="content">
-                            <h4>Users</h4>
-                            <table class="table">
-                                <thead>
-                                    <tr>
-                                        <th>User</th>
-                                        <th><abbr title="Remove">Rm</abbr></th>
-                                        <th><abbr title="Make Owner">Own</abbr></th>
-                                    </tr>
-                                </thead>
-                                {% if current_user == group.owner %}
-                                <tfoot>
-                                    <tr id="invite">
-                                        <td colspan="2">Invite</td>
-                                        <td><a class="button is-small"
-                                            hx-on:click="$('#{{group.name}} #invite').hide();$('#{{group.name}} #invite_input').show();"
-                                            ><span class="icon"><i class="ti ti-plus"></i></span></a></td>
-                                    </tr>
-                                    <tr id="invite_input" style="display:none;">
-                                        <form action="" method="post"
-                                            hx-post="{{url_for('profiles_v1.ProfileGroupAdd')}}"
-                                            hx-include="#csrf_token"
-                                            hx-swap="none"
-                                            hx-confirm="Are you sure you wish to invite this user?"
-                                            hx-vals='{"group":"{{group.name}}"}' 
-                                            hx-on::after-request="var input = $('#invite_group_input').val();window.addUser(event.detail, '{{group.name}}', input);$('#{{group.name}} #invite').hide();$('#{{group.name}} #invite_input').show();">
-                                            <td colspan="2">
-                                                <div class="control has-icons-left">
-                                                    <input class="input" id="invite_group_input" maxlength="255" minlength="6" name="email" required="" type="text" value="" placeholder="someone@example.com">
-                                                    <span class="icon is-small is-left">
-                                                        <i class="ti ti-mail"></i>
-                                                    </span>
-                                                </div></td>
-                                            <td><button class="button is-small" type="submit"><span class="icon"><i class="ti ti-send"></i></span></button></td>
-                                        </form>
-                                    </tr>
-                                </tfoot>
-                                {% endif %}
-                                <tbody>
-                                    {% for user in group.users %}
-                                    <tr id="{{user.hex}}">
-                                        <td>{% if user == group.owner %}<span class="icon"><i class="ti ti-crown-filled"></i></span> {% endif %}{{user.email}}</td>
-                                        <td><a class="button is-icon" {% if user == group.owner or user == current_user %}disabled{% else %}
-                                            hx-post="{{url_for('profiles_v1.ProfileGroupRemove')}}"
-                                            hx-include="#csrf_token"
-                                            hx-swap="none"
-                                            hx-confirm="Are you sure you wish to remove this user?"
-                                            hx-vals='{"user":"{{user.email}}","group":"{{group.name}}"}' 
-                                            hx-on::after-request="window.removeUser(event.detail, '{{group.name}}', '{{user.hex}}', '{{user.email}}')"
-                                            {% endif %}><span class="icon"><i class="ti ti-x"></i></span></a></td>
-                                        <td><a class="button is-icon" {% if user == group.owner or user == current_user %}disabled{% else %}
-                                            hx-post="{{url_for('profiles_v1.ProfileGroupOwner')}}"
-                                            hx-include="#csrf_token"
-                                            hx-swap="none"
-                                            hx-confirm="Are you sure you wish to make this user the owner of the group? You will no longer be the owner, and this action is irreversible."
-                                            hx-vals='{"user":"{{user.email}}","group":"{{group.name}}"}' 
-                                            hx-on::after-request="window.promoteUser(event.detail, '{{group.name}}', '{{user.hex}}', '{{user.email}}')"
-                                            {% endif %}><span class="icon"><i class="ti ti-crown-filled"></i></span></a></td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                            
-                        </div>
-                    </div>
-                    {% endfor %}
-                    <div id="close_account" class="is-hidden">
-                        <div class="content">
-                            <h4>Close Account</h4>
-                            <p>To close your account, please get in contact with support.</p>
-                            <a class="button is-primary" href={{url_for('views.support')}}>Contact Support</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <div class="card" style="height: fit-content">
+          <h5>General</h5>
+          <ul class="menu is-ghost">
+            {{ item(name="Account", target="account") }}
+            {{ item(name="Preferences", target="preferences") }}
+            {{ item(name="Manage Subscription", target="subscription") }}
+          </ul>
+          <h5>Profiles</h5>
+          <ul class="menu is-ghost">
+            {% for group in current_user.groups %}
+            {{ item(name=group.name, target=group.name) }}
+            {% endfor %}
+          </ul>
+          <h5>Other</h5>
+          <ul class="menu is-ghost">
+            {{ item(name="Close Account", target="close") }}
+          </ul>
         </div>
-    </section>
+
+        <div class="flex-10">
+
+          <div id="account" x-show="current === 'account'">
+            <h4>One-Click Sign In</h4>
+            <div class="group block-xl" >
+              {% if current_user.google %}
+              {{google_link('Disconnect', url_for('views.login_oauth', provider='google', disconnect='true'))}}
+              {% else %}
+              {{google_link('Connect', url_for('views.login_oauth', provider='google', connect='true'))}}
+              {% endif %}
+            </div>
+
+            <h4>{% if current_user.local_auth %}Change{% else %}Set{% endif %} Password</h4>
+            <a class="button is-primary block-xl" href={{url_for('views.password_request_send', email=current_user.email)}}>Reset Password</a>
+
+            <h4>Change Email</h4>
+            <form action="" method="post" class="block-xl">
+              {{ email_form.hidden_tag() }}
+
+              {{ input(email_form,'email') }}
+
+              {{ submit('submit', 'Submit', 'primary') }}
+            </form>
+          </div>
+
+          <div id="preferences" x-show="current === 'preferences'">
+            <h4>Marketing Preferences</h4>
+            <div class="field">
+              <label class="checkbox">
+                <input id="marketing" name="marketing" type="checkbox" class="checkbox is-success"
+                  {% if current_user.marketing %}checked{% endif %}
+                  x-data="{
+                    url: '{{url_for('users_v1.UserMarketingSwitch')}}',
+                    csrfToken: '{{ csrf_token() }}'
+                  }"
+                  @click="ajax(url, {}, 'PATCH', csrfToken)"
+                >
+                Recieve occassional emails <small>(we promise not to spam you)</small>
+              </label>
+            </div>
+          </div>
+
+          <div id="subscription" x-show="current === 'subscription'">
+            <h4>Manage Subscription</h4>
+            {% if not current_user.pro_override %}
+              <div class="group">
+              {% if current_user.stripe%}
+                {% if current_user.stripe.active %}
+                <a class="button is-primary portal">Manage Subscription</a>
+                {% else %}
+                <a class="button is-primary portal">View Invoice History</a>
+                {% endif %}    
+              {% endif %}
+              {% if not current_user.stripe or not current_user.stripe.active %}
+              <a class="button is-primary monthly">Get Started - Monthly</a>
+              <a class="button is-primary yearly">Get Started - Yearly</a>
+              {% endif %}
+              </div>
+            {% else %}
+            <p>Subscribed for free! Congrats!</p>
+            {% endif %}
+          </div>
+
+          {% for group in current_user.groups %}
+          <div id="{{group.name}}" x-show="current === '{{group.name}}'">
+            <h4>Users</h4>
+            <table
+              class="is-striped"
+              x-data
+            >
+
+              <thead>
+                <tr>
+                  <th>User</th>
+                  {% if current_user == group.owner %}
+                  <th><abbr title="Remove">Rm</abbr></th>
+                  <th><abbr title="Make Owner">Own</abbr></th>
+                  {% endif %}
+                </tr>
+              </thead>
+
+              {% if current_user == group.owner %}
+                <tfoot>
+                  <tr>
+                    <form data-ajax action="{{url_for('profiles_v1.ProfileGroupAdd')}}" method="POST">
+                      <input id="group" name="group" type="hidden" value="{{group.name}}" required>
+                      <td colspan="2"><input class="input" style="font-weight:var(--weight-normal)" id="invite_group_input" maxlength="255" minlength="6" name="email" required="" type="text" value="" placeholder="someone@example.com"></td>
+                      <td><button class="button is-icon" type="submit"><span class="icon"><i class="ti ti-send"></i></span></button></td>
+                    </form>
+                  </tr>
+                </tfoot>
+                {% endif %}
+
+                <tbody>
+                  {% for user in group.users %}
+                  <tr id="{{user.hex}}">
+                    <td><span class="group">
+                      {% if user == group.owner %}<span class="icon"><i class="ti ti-crown-filled"></i></span>{% endif %}
+                      <span>{{user.email}}</span>
+                    </span></td>
+                    {% if current_user == group.owner %}
+                    <td>
+                      <button class="button is-icon is-danger"
+                      {% if user == group.owner or user == current_user %}disabled{% else %}
+                      x-data="{
+                        url: '{{url_for('profiles_v1.ProfileGroupRemove')}}',
+                        csrfToken: '{{ csrf_token() }}',
+                        data: { email : '{{user.email}}', group: '{{group.name}}' },
+                        id: '{{user.hex}}'
+                      }"
+                      @click="if (confirm('Are you sure you wish you remove this user?')) {
+                        if ( ajax(url, data, 'POST', csrfToken) ) {
+                          document.getElementById(id).remove()
+                        }
+                      }"
+                      {% endif %}
+                      ><span class="icon"><i class="ti ti-x"></i></span></button>
+                    </td>
+
+                    <td>
+                      <button class="button is-icon is-warning"
+                      {% if user == group.owner or user == current_user %}disabled{% else %}
+                      x-data="{
+                        url: '{{url_for('profiles_v1.ProfileGroupOwner')}}',
+                        csrfToken: '{{ csrf_token() }}',
+                        data: { email : '{{user.email}}', group: '{{group.name}}' },
+                      }"
+                      @click="if (confirm('Are you sure you wish invite this user to be the owner of the group? You will no longer be the owner, and this action is irreversible.')) {
+                        ajax(url, data, 'POST', csrfToken);
+                      }"
+                      {% endif %}
+                      ><span class="icon"><i class="ti ti-crown-filled"></i></span></button>
+                    </td>
+
+                    {% endif %}
+                  </tr>
+                  {% endfor %}
+                </tbody>
+
+            </table>
+          </div>
+          {% endfor %}
+
+          <div id="close" x-show="current === 'close'" class="content">
+            <h4>Close Account</h4>
+            <p>To close your account, please get in contact with support.</p>
+            <a class="button is-primary" href={{url_for('views.support')}}>Contact Support</a>
+          </div>
+
+        </div>
+    </div>
+  </section>
 {% endblock %}

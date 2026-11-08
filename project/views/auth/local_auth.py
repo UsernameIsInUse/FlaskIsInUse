@@ -54,10 +54,9 @@ def login():
           login_user(user, remember=form.remember_me.data)
           log(request=request, user=user, description='Logged in via local auth')
           next = request.args.get("next")
-          #return redirect(next or current_user.profile.url)
           if not user.confirmed:
             return redirect(url_for('views.confirm'))
-          return redirect(next or url_for('views.index'))
+          return redirect(next or url_for('views.user_settings'))
         else:
           flash('Something went wrong. Use another login method or register instead?', 'warning', url=url_for('views.register'))
           log(request=request, description='Failed login attempt, likely wrong password')
@@ -170,14 +169,14 @@ def confirm_email(token:str):
       user.date_confirmed = datetime.now()
       db.session.commit()
       flash("Email confirmed!",'success')
-      log(request=request, user=current_user, description='Email confirmed')
+      log(request=request, description='Email confirmed')
       if current_user.is_authenticated:
-        return redirect(url_for("views.profile_setup"))
+        return redirect(url_for("views.index"))
       else:
         return redirect(url_for("views.confirm_success"))
   except:
     flash("The confirmation link is invalid or has expired.", "warning")
-    log(request=request, user=current_user, description='Email confirmation failed')
+    log(request=request, description='Email confirmation failed')
     return redirect(url_for("views.confirm"))
 
 @bp.route('/confirmation/')

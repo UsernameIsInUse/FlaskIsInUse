@@ -11,6 +11,7 @@ body {
   position:fixed;
   bottom:1rem;
   right:1rem;
+  z-index: var(--z-index-version);
 }
 
 .flashes {

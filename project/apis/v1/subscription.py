@@ -81,7 +81,7 @@ class SubscriptionPortalSession(MethodView):
             customer = current_user.stripe.stripe_customer_id,
             return_url = url_for('views.user_settings', _external=True)
           )
-          log(user=current_user, request=request, description='Created a stripe billing portal session')
+          log(request=request, description='Created a stripe billing portal session')
           return {'url': portal_session.url}
         except Exception as e:
           return {'error': str(e)}, 400

@@ -152,5 +152,5 @@ def validate_turnstile(token:str, secret:str, remoteip:Optional[str]=None):
     return response.json()
   
   except RequestException as e:
-    log(description='Turnstile validation error: {e}')
+    log(description=f'Turnstile validation error: {e}')
     return {'success':False, 'error-codes':['internal-error']}

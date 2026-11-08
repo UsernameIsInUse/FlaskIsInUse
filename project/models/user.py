@@ -62,20 +62,12 @@ class User(UserMixin, db.Model):
     return [link.group for link in self.group_links]
   
   @property
-  def main_group(self):
-    return self.group_links[0].group
-  
-  @property
-  def profile(self):
-    return self.main_group.profile
+  def owned_groups(self) -> list:
+    return [group for group in self.groups if group.owner == self]
   
   @property
   def profiles(self) -> list:
-    from project.models import Profile
-    profiles = []
-    for group in self.groups:
-      profiles.append(Profile.query.filter_by(username=group.name).first())
-    return profiles
+    return [group.profile for group in self.groups]
   
   @property
   def is_admin(self):
@@ -107,6 +99,12 @@ class User(UserMixin, db.Model):
       if account.provider == 'google':
         return True
       return False
+    
+  @property
+  def local_auth(self):
+    if self.hashed_pass:
+      return True
+    return False
     
 class OAuthAccount(db.Model):
   __tablename__ = "oauth_accounts"

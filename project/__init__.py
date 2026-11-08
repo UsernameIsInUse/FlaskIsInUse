@@ -23,7 +23,7 @@ def create_app(config_class=Config):
   mail.init_app(app)
   api.init_app(app)
   compress.init_app(app)
-  toolbar.init_app(app)
+  #toolbar.init_app(app)
   CORS(app,resources={
     r"/subscription/*": {"origins": "https://checkout.stripe.com"},
     r"/settings": {"origins": "https://checkout.stripe.com"}

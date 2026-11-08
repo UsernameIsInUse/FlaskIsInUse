@@ -11,5 +11,6 @@
 {% block buttonText %}Accept Invite{% endblock %}
 
 {% block content2 %}
+<p>Don't have an account? <a href="{{url_for('views.register', _external=True)}}" target="_blank">Create one!</a></p>
 <p>If you don't know why you've been invited or think this was a mistake, you can safely ignore this email.</p>
 {% endblock %}

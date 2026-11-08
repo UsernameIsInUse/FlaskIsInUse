@@ -54,14 +54,11 @@ def send_group_invite_request_email(email:str, group:Group) -> bool:
   Returns:
       bool: Whether or not the email was sent successfully.
   """
-  user = User.query.filter_by(email=email).first()
-  if user:
-    token = generate_token(email)
-    confirm_url = url_for("views.group_invite", token=token, group=group, _external=True)
-    html = render_template("email/group/invite_request.html", group=group, confirm_url=confirm_url, unsubscribe=False)
-    subject = "FlaskIsInUse Group Invite"
-    return send_email([email],subject,html)
-  return False
+  token = generate_token(email)
+  confirm_url = url_for("views.group_invite", token=token, group=group, _external=True)
+  html = render_template("email/group/invite_request.html", group=group, confirm_url=confirm_url, unsubscribe=False)
+  subject = "FlaskIsInUse Group Invite"
+  return send_email([email],subject,html)
   
 def send_group_owner_request_email(email:str, group:Group) -> bool:
   """Sends a group ownership request email to the provided email address.

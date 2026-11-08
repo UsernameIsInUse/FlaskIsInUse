@@ -24,25 +24,25 @@ class UserResetPassword(MethodView):
 
 @bp.route('/marketing')
 class UserMarketingSwitch(MethodView):
-  @bp.response(204)
+  @bp.response(200)
   def patch(self):
-    if current_user.is_authenticated:
-      current_user.marketing = not current_user.marketing
-      db.session.commit()
-      log(request=request, description=f'Set marketing to {current_user.marketing}')
-      return {'status':204, 'message':'Updated marketing preferences.'}, 204
-    log(request=request, description=f'Failed to change marketing preferences')
-    return {'status':401, 'message':'Failed to change marketing preferences.'}, 401
+    if not current_user.is_authenticated:
+      log(request=request, description='Failed to change marketing preferences, user not logged in')
+      return {'status':401, 'message':'You must be logged in to perform this action.'}, 401
+    current_user.marketing = not current_user.marketing
+    db.session.commit()
+    log(request=request, description='Set marketing to {current_user.marketing}')
+    return {'status':200, 'message':'Updated marketing preferences.'}, 200
   
 @bp.route('/send_confirm_email')
 class UserSendEmailConfirmation(MethodView):
   @bp.response(202)
   def post(self):
-    if current_user.is_authenticated:
-      if not current_user.confirmed:
-        send_email_confirmation_email(current_user.unconfirmed_email)
-        return {'status':202, 'message':'Sent email confirmation.'}, 202
-      log(request=request, description=f'Tried to send email confirmation, user already confirmed')
-      return {'status':405, 'message':'Failed to send email confirmation.'}, 405
-    log(request=request, description=f'Failed to send email confirmation')
-    return {'status':401, 'message':'Failed to send email confirmation.'}, 401
+    if not current_user.is_authenticated:
+      log(request=request, description='Failed to send email confirmation, user not logged in')
+      return {'status':401, 'message':'You must be logged in to perform this action.'}, 401
+    elif current_user.confirmed:
+      log(request=request, description='Tried to send email confirmation, user already confirmed')
+      return {'status':405, 'message':'Email already confirmed.'}, 405
+    send_email_confirmation_email(current_user.unconfirmed_email)
+    return {'status':202, 'message':'Sent email confirmation.'}, 202

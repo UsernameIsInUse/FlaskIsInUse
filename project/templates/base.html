@@ -17,9 +17,6 @@
 
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Commissioner:wght@100..900&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
-    
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.8/dist/htmx.min.js"></script>
 
     {% block alpine %}{% endblock %}
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
@@ -81,10 +78,6 @@
 
     <script> // Ajax
       async function ajax(url, data = {}, method = "POST", csrfToken = null) {
-        console.log(url)
-        console.log(data)
-        console.log(method)
-        console.log(csrfToken)
         try {
           const response = await fetch(url, {
             method,
@@ -96,15 +89,22 @@
             body: method.toUpperCase() !== "GET" ? JSON.stringify(data) : undefined
           });
 
-          const responseData = await response.json();
+          if (await response.status != 204) {
+            const responseData = await response.json();
+            var message = responseData.message
+          } else {
+            var message = null
+          }
           
           if (response.ok) {
-            notify(responseData.message, response.ok ? "info" : "warning");
+            notify(message ? message : "Action successful", "info");
+            return true
           } else {
             throw new Error();
           };
         } catch (error) {
-          notify("Something went wrong.", "danger");
+          notify(message ? message : "Something went wrong.", "warning");
+          return false
         };
       };
 
@@ -113,8 +113,8 @@
         if (!form) return;
         e.preventDefault();
         const formData = Object.fromEntries(new FormData(form));
-        const csrfToken = formData.csrf_token || "";
-        await ajax(form.action, formData, form.method.toUpperCase(), csrfToken)
+        const csrfToken = formData.csrf_token || '{{ csrf_token() }}';
+        return await ajax(form.action, formData, form.method.toUpperCase(), csrfToken)
       })
     </script>
   </head>
@@ -205,13 +205,11 @@
       </script>
     </ul>
 
-    <span class="chip is-quiet is-info version">{{version}}</span>
-
     {% include "nav.html" %}
 
     <main
       class='has-sidebar {% if sidebar %}open{% endif %}'
-      :class="{ 'open': sidebarOpen, 'full': sidebarFull, 'no-transitions': !initialized }"
+      :class="{ 'open': sidebarOpen, 'full': sidebarFull, 'no-transitions': !initialized, 'is-hidden': !initialized }"
     >
       {% include "sidebar.html" %}
 
@@ -219,6 +217,8 @@
         {% block content %}{% endblock %}
       </div>
     </main>
+
+    <span class="chip is-quiet is-info version">{{version}}</span>
 
   </body>
 </html>
