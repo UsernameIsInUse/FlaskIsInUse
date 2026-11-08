@@ -11,12 +11,21 @@ class LoginForm(FlaskForm):
   password = PasswordField('Password',
                            validators=[DataRequired(),
                                        Length(min=8, max=255)])
-  remember_me = BooleanField("Remember Me")
+  remember_me = BooleanField("Remember Me", validators=[Optional()])
   submit = SubmitField('Login')
   
-class RegisterForm(FlaskForm):
+class OauthRegisterForm(FlaskForm):
+  username = StringField('Username',
+                         validators=[DataRequired(),
+                                     Length(min=1, max=64),
+                                     Regexp('^[A-Za-z0-9_-]+$', message="Username can only contain letters, numbers, underscores, and dashes.")])
+  tos = BooleanField("Terms of Service", validators=[DataRequired()])
+  marketing = BooleanField("Marketing", validators=[Optional()])
+  submit = SubmitField()
+
+class LocalRegisterForm(FlaskForm):
   email = StringField('Email',
-                         validators=[Optional(),
+                         validators=[DataRequired(),
                                      Length(min=6, max=255),
                                      Email()])
   username = StringField('Username',
@@ -24,10 +33,10 @@ class RegisterForm(FlaskForm):
                                      Length(min=1, max=64),
                                      Regexp('^[A-Za-z0-9_-]+$', message="Username can only contain letters, numbers, underscores, and dashes.")])
   password = PasswordField('Password',
-                           validators=[Optional(),
+                           validators=[DataRequired(),
                                        Length(min=8, max=255)])
   password2 = PasswordField('Repeat Password',
-                            validators=[Optional(),
+                            validators=[DataRequired(),
                                         EqualTo('password')])
   tos = BooleanField("Terms of Service", validators=[DataRequired()])
   marketing = BooleanField("Marketing", validators=[Optional()])

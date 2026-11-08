@@ -2,7 +2,7 @@ from flask import abort, redirect, request, url_for, current_app
 from flask_login import current_user
 from flask_flashy import flash
 
-from project.utils import log
+from project.utils import log, get_profile, get_role
 
 from functools import wraps
 from itsdangerous import URLSafeTimedSerializer
@@ -25,7 +25,7 @@ def is_admin(user:"User"=current_user) -> bool:
   """
   if not user.is_authenticated:
     return False
-  admin = Role.query.filter_by(name="Admin").first()
+  admin = get_role("Admin", False)
   if admin in user.roles:
     return True
   return False
@@ -80,7 +80,7 @@ def member_check_decorator(f):
     if not current_user.is_authenticated:
       return login_redirect()
     kwargs.get("username")
-    profile = Profile.query.filter_by(name=kwargs.get("username")).first()
+    profile = get_profile(kwargs.get("username"))
     if not is_member(profile) and not is_admin():
       abort(403)
     return f(*args, **kwargs)
@@ -93,7 +93,7 @@ def owner_check_decorator(f):
     if not current_user.is_authenticated:
       return login_redirect()
     kwargs.get("username")
-    profile = Profile.query.filter_by(name=kwargs.get("username")).first()
+    profile = get_profile(kwargs.get("username"))
     if not is_owner(profile) and not is_admin():
       abort(403)
     return f(*args, **kwargs)
@@ -105,7 +105,7 @@ def confirmed_check_decorator(f):
     """The user, if authenticated, must have email confirmed."""
     if current_user.is_authenticated and not current_user.confirmed:
       flash('You must confirm your email to proceed.', 'info')
-      return redirect(url_for("views.confirm"))
+      return confirm_redirect()
     return f(*args, **kwargs)
   return decorated_function
 
@@ -115,7 +115,7 @@ def not_confirmed_check_decorator(f):
     """The user, if authenticated, must not have email confirmed."""
     if current_user.is_authenticated and current_user.confirmed:
       flash('Email already confirmed.', 'warning')
-      return redirect(url_for('views.index'))
+      return default_redirect()
     return f(*args, **kwargs)
   return decorated_function
 
@@ -125,7 +125,7 @@ def not_authenticated_check_decorator(f):
     """The user must not be authenticated to proceed."""
     if current_user.is_authenticated:
       flash('Already logged in.', 'warning')
-      return redirect(url_for('views.index'))
+      return default_redirect()
     return f(*args, **kwargs)
   return decorated_function
 
@@ -156,6 +156,16 @@ def register_redirect(next:bool=True, flash_text:str="You must be logged in to a
     return redirect(url_for('views.register', next=request.full_path))
   else:
     return redirect(url_for('views.register'))
+  
+def confirm_redirect() -> "Response":
+  """Redirects the user to the confirm page."""
+  return redirect(url_for('views.confirm'))
+
+def default_redirect() -> "Response":
+  """Redirects the user to the default page."""
+  if current_user.is_authenticated:
+    return redirect(url_for('views.user_settings'))
+  return redirect(url_for('views.index'))
 
 def generate_token(email:str) -> str:
   """Generates a secure URLSafe Timed Serializer token for emails.

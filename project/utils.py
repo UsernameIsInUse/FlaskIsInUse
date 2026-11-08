@@ -6,11 +6,12 @@ from project import db, mail
 
 import json
 from os import environ
+from datetime import datetime, timezone
 
 from typing import TYPE_CHECKING, Optional
 if TYPE_CHECKING:
   from flask import Request
-  from project.models import User, Profile
+  from project.models import User, Profile, UserProfile, Role, UserRole
 
 def db_add(object) -> bool:
   """Adds the given object to the database and commits.
@@ -23,7 +24,21 @@ def db_add(object) -> bool:
     db.session.commit()
     return True
   except Exception as e:
-    print(e)
+    log(data={object},description="Failed to add object to database.")
+    return False
+
+def db_delete(object) -> bool:
+  """Deletes the given object from the database and commits.
+
+  Returns:
+      bool: True if removed.
+  """
+  try:
+    db.session.delete(object)
+    db.session.commit()
+    return True
+  except Exception as e:
+    log(data={object},description="Failed to delete object from database.")
     return False
 
 def log(data:Optional[dict]=None, request:Optional["Request"]=None, user:Optional["User"]=None, description:str=None) -> bool:
@@ -68,20 +83,90 @@ def log(data:Optional[dict]=None, request:Optional["Request"]=None, user:Optiona
     db_add(log)
     return True
   except Exception as e:
-    print(e)
+    #print(e)
     return False
 
-def get_profile(username:str) -> "Profile":
+def get_profile(username:str, not_found:bool=True) -> "Profile":
   """Returns a profile from a username.
 
   Args:
       username (str): Username of the profile.
+      not_found (bool): Whether or not to 404 if not found (defaults to True).
 
   Returns:
       Profile
   """
   from project.models import Profile
-  return Profile.query.filter_by(username=username).first_or_404()
+  if not_found:
+    return Profile.query.filter_by(username=username).first_or_404()
+  return Profile.query.filter_by(username=username).first()
+
+def get_user(email:str, not_found:bool=True, unconfirmed:bool=False) -> "User":
+  """Returns a user from an email.
+
+  Args:
+      email (str): Email of the user.
+      not_found (bool): Whether or not to 404 if not found (defaults to True).
+      not_found (bool): Whether or not to search unconfirmed email (defaults to False).
+
+  Returns:
+      User
+  """
+  from project.models import User
+  if unconfirmed:
+    if not_found:
+      return User.query.filter_by(unconfirmed_email=email).first_or_404()
+    return User.query.filter_by(unconfirmed_email=email).first()
+  if not_found:
+    return User.query.filter_by(email=email).first_or_404()
+  return User.query.filter_by(email=email).first()
+
+def get_user_profile(user:User, profile:Profile, not_found:bool=True) -> "UserProfile":
+  """Returns a userprofile from a user and a profile.
+
+  Args:
+      user (User): User object.
+      profile (Profile): Profile object.
+      not_found (bool): Whether or not to 404 if not found (defaults to True).
+
+  Returns:
+      UserProfile
+  """
+  from project.models import UserProfile
+  if not_found:
+    return UserProfile.query.filter_by(user=user, profile=profile).first_or_404()
+  return UserProfile.query.filter_by(user=user, profile=profile).first()
+
+def get_role(name:str, not_found:bool=True) -> "Role":
+  """Returns a role from a name.
+
+  Args:
+      name (str): Name of the role.
+      not_found (bool): Whether or not to 404 if not found (defaults to True).
+
+  Returns:
+      Role
+  """
+  from project.models import Role
+  if not_found:
+    return Role.query.filter_by(name=name).first_or_404()
+  return Role.query.filter_by(name=name).first()
+
+def get_user_role(user:User, role:Role, not_found:bool=True) -> "UserRole":
+  """Returns a userrole from a user and a role.
+
+  Args:
+      user (User): User object.
+      role (Role): Role object.
+      not_found (bool): Whether or not to 404 if not found (defaults to True).
+
+  Returns:
+      UserProfile
+  """
+  from project.models import UserRole
+  if not_found:
+    return UserRole.query.filter_by(user=user, role=role).first_or_404()
+  return UserRole.query.filter_by(user=user, role=role).first()
 
 def reset_database(dev=False) -> bool:
   """Resets the database.
@@ -97,13 +182,13 @@ def reset_database(dev=False) -> bool:
       dev_database()
     return True
   except Exception as e:
-    print(e)
+    #print(e)
     return False
   
 def dev_database():
   """Creates an Admin user from environment variables."""
   from project.models import User, Role, UserRole, Profile, UserProfile
-  user = User(email=environ['DEV_EMAIL'], confirmed=True)
+  user = User(email=environ['DEV_EMAIL'], confirmed=True, date_confirmed=datetime.now(timezone.utc))
   user.set_password(environ['DEV_PASS'])
   db_add(user)
   profile = Profile(username=environ["DEV_USER"])

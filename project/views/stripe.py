@@ -2,7 +2,7 @@ from flask import redirect, url_for, request
 from flask_login import current_user, login_required
 
 from project.views import bp
-from project.utils import log
+from project.utils import log, db_add
 from project.stripe import stripe, stripe_keys
 from project.models import User, StripeCustomer
 from project.extensions import db, csrf
@@ -10,17 +10,17 @@ from project.extensions import db, csrf
 @bp.route('/subscription/', methods=['POST','GET'])
 @login_required
 def subscription():
-  return redirect(url_for('views.user_settings', page="subscription"))
+  return redirect(url_for('views.user_settings', _anchor="subscription"))
 
 @bp.route('/subscription/success', methods=['POST','GET'])
 @login_required
 def subscription_success():
-  return redirect(url_for('views.user_settings', page="subscription"))
+  return redirect(url_for('views.user_settings', _anchor="subscription"))
 
 @bp.route('/subscription/cancel', methods=['POST','GET'])
 @login_required
 def subscription_cancel():
-  return redirect(url_for('views.user_settings', page="subscription"))
+  return redirect(url_for('views.user_settings', _anchor="subscription"))
 
 @bp.route("/subscription/webhook", methods=["POST"])
 @csrf.exempt
@@ -59,8 +59,7 @@ def stripe_webhook():
         stripe_subscription_id=subscription_id,
         active=True
       )
-      db.session.add(customer)
-      db.session.commit()
+      db_add(customer)
       log(user=current_user, request=request, description='Subscribed via stripe')
   
   elif event["type"] == "customer.subscription.deleted":

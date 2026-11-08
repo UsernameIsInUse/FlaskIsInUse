@@ -2,12 +2,12 @@ from flask import redirect, url_for, request, session, abort
 from flask_login import login_user, current_user
 from flask_flashy import flash
 
-from project import db, oauth
+from project import oauth
 from project.views import bp
 from project.models import User, OAuthAccount
-from project.utils import log, db_add
+from project.utils import log, db_add, db_delete, get_user
 from project.services import setup_user
-from project.access_control import login_redirect
+from project.access_control import login_redirect, default_redirect
 
 from datetime import datetime, timezone
 
@@ -21,13 +21,10 @@ def login_oauth(provider:str):
   if connect and current_user.is_authenticated:
     session["oauth_type"] = "connect"
   elif disconnect and current_user.is_authenticated:
-    print('yes')
     for account in current_user.oauth_accounts:
       if account.provider == provider:
-        print('yes')
-        db.session.delete(account)
-        db.session.commit()
-        return redirect(url_for('views.user_settings', page='account'))
+        db_delete(account)
+        return redirect(url_for('views.user_settings', _anchor='account'))
   if provider == "google":
     redirect_url = url_for('views.google_callback', _external=True)
     return oauth.google.authorize_redirect(redirect_url)
@@ -55,7 +52,7 @@ def google_callback():
       user = oauth_account.user
       login_user(user)
       log(request=request, user=user, description=f'Logged in via {provider} OAuth')
-      return redirect(url_for('views.index'))
+      return default_redirect()
     log(request=request, description='Failed login attempt, no oauth account found')
     return login_redirect(next=False, flash_text=f"Something went wrong. If you have an account, you must first login and connect to {provider.capitalize()} in settings. If you do not have an account, please register a new account.")
     
@@ -65,8 +62,8 @@ def google_callback():
       login_user(user)
       log(request=request, user=user, description=f'Logged in via {provider} OAuth via register page')
       flash('You already have an account! Logged in.', "info")
-      return redirect(url_for('views.index'))
-    user = User.query.filter_by(email = userinfo['email']).first()
+      return default_redirect()
+    user = get_user(userinfo['email'], False)
     if user:
       log(request=request, description='Failed register attempt, account already exists')
       return login_redirect(next=False, flash_text=f"Something went wrong. If you have an account, you must first login and connect to {provider.capitalize()} in settings. If you do not have an account, please register a new account.")
@@ -99,6 +96,6 @@ def google_callback():
     )
     db_add(oauth_account)
     log(request=request, user=current_user, description=f"Connected to {provider} OAuth")
-    return redirect(url_for('views.user_settings', page="account"))
+    return redirect(url_for('views.user_settings', _anchor="account"))
     
-  return redirect(url_for('views.index'))
+  return default_redirect()

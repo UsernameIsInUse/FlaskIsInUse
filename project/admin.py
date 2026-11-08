@@ -20,7 +20,7 @@ class MyAdminIndexView(AdminIndexView):
   def inaccessible_callback(self, name, **kwargs):
     if current_user.is_authenticated:
       return abort(403)
-    return redirect(url_for('views.login', next=request.full_path))
+    return login_redirect()
 
 admin.index_view = MyAdminIndexView
 

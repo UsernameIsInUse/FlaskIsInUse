@@ -5,7 +5,7 @@
   {{ field.label(class="label") }}
   {{ field(class="input" **{"x-model": model})}}
   {% for error in field.errors %}
-  <div class="notification quiet">
+  <div class="notification is-quiet">
     <p>{{ error }}</p>
   </div>
   {% endfor %}
@@ -25,7 +25,7 @@
   {{ field.label(class="label") }}
   {{ field(class="input")}}
   {% for error in field.errors %}
-  <div class="notification quiet">
+  <div class="notification is-quiet">
     <p>{{ error }}</p>
   </div>
   {% endfor %}
@@ -57,10 +57,10 @@
 {% endmacro %}
 
 {% macro checkbox(name, display) %}
-<div class="field" style="width:0;opacity:0;display:table-column;">
+<div class="field">
   <label class="checkbox">
-    <input id="phone" name="phone" type="checkbox">
-    If you are a person, do not check this this.</span>
+    <input id="{{ name }}" name="{{ name }}" type="checkbox" class="checkbox is-success" required>
+    <span class="is-base">{{ display }}</span>
   </label>
 </div>
 {% endmacro %}
@@ -68,8 +68,8 @@
 {% macro honeypot() %}
 <div class="field" style="width:0;opacity:0;display:table-column;">
   <label class="checkbox">
-    <input id="username" name="username" type="checkbox">
-    If you are a person, do not check this.</span>
+    <input id="phone" name="phone" type="checkbox">
+    If you are a person, do not check this.
   </label>
 </div>
 {% endmacro %}

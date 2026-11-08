@@ -16,15 +16,15 @@
     <div class="container is-sm content">
       <h1>Sign Up</h1>
       <form action="" method="post" x-data="{ local: false }">
-        {{ form.hidden_tag() }}
+        {{ local_form.hidden_tag() }}
 
-        {{ input(form,'username') }}
+        {{ input(local_form,'username') }}
 
         <template x-if="local">
           <div class="block">
-            {{ input(form,'email') }}
-            {{ password(form,'password') }}
-            {{ password(form,'password2') }}
+            {{ input(local_form,'email') }}
+            {{ password(local_form,'password') }}
+            {{ password(local_form,'password2') }}
             {{ showPassword() }}
           </div>
         </template>

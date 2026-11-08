@@ -1,7 +1,7 @@
 from flask import url_for, render_template
 
 from project.models import User, Profile, UserProfile
-from project.utils import send_email, db_add, log
+from project.utils import send_email, db_add, log, get_user
 from project.access_control import generate_token
 
 def send_email_confirmation_email(email:str) -> bool:
@@ -13,7 +13,7 @@ def send_email_confirmation_email(email:str) -> bool:
   Returns:
       bool: Whether or not the email was sent successfully.
   """
-  user = User.query.filter_by(unconfirmed_email=email).first()
+  user = get_user(email,False,True)
   if user:
     token = generate_token(email)
     confirm_url = url_for("views.confirm_email", token=token, _external=True)
@@ -31,7 +31,7 @@ def send_password_reset_email(email:str) -> bool:
   Returns:
       bool: Whether or not the email was sent successfully.
   """
-  user = User.query.filter_by(email=email).first()
+  user = get_user(email,False)
   if user:
     token = generate_token(email)
     confirm_url = url_for("views.password_reset_token", token=token, _external=True)
@@ -66,7 +66,7 @@ def send_profile_owner_request_email(email:str, profile:Profile) -> bool:
   Returns:
       bool: Whether or not the email was sent successfully.
   """
-  user = User.query.filter_by(email=email).first()
+  user = get_user(email,False)
   if user:
     token = generate_token(email)
     confirm_url = url_for("views.profile_owner_invite", token=token, profile=profile, _external=True)
@@ -84,7 +84,7 @@ def send_email_changed_email(email:str) -> bool:
   Returns:
       bool: Whether or not the email was sent successfully.
   """
-  user = User.query.filter_by(email=email).first()
+  user = get_user(email,False)
   if user:
     html = render_template("email/email_change.html", unsubscribe=False)
     subject = "Your FlaskIsInUse Email Has Been Changed"
