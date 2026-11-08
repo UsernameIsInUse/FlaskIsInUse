@@ -92,16 +92,24 @@
           if (await response.status != 204) {
             const responseData = await response.json();
             var message = responseData.message
+            var url = responseData.url
           } else {
             var message = null
+            var url = null
           }
           
           if (response.ok) {
             notify(message ? message : "Action successful", "info");
+
+            if (url) {
+              location.assign(url);
+              location.reload();
+            }
             return true
           } else {
             throw new Error();
           };
+          
         } catch (error) {
           notify(message ? message : "Something went wrong.", "warning");
           return false
@@ -211,7 +219,7 @@
     {% include "nav.html" %}
 
     <main
-      class='has-sidebar {% if sidebar %}open{% endif %}'
+      class='has-sidebar'
       :class="{ 'open': sidebarOpen, 'full': sidebarFull, 'no-transitions': !initialized, 'is-hidden': !initialized }"
     >
       {% include "sidebar.html" %}

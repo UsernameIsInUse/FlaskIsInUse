@@ -101,6 +101,7 @@
 
           {% for profile in current_user.profiles %}
           <div id="{{profile.username}}" x-show="current === '{{profile.username}}'">
+
             <h4>Users</h4>
             <table
               class="is-striped"
@@ -122,8 +123,12 @@
                   <tr>
                     <form data-ajax action="{{url_for('profiles_v1.ProfileUserAdd')}}" method="POST">
                       <input id="profile" name="profile" type="hidden" value="{{profile.username}}" required>
-                      <td colspan="2"><input class="input" style="font-weight:var(--weight-normal)" maxlength="255" minlength="6" name="email" required="" type="text" value="" placeholder="someone@example.com"></td>
-                      <td><button class="button is-icon" type="submit"><span class="icon"><i class="ti ti-send"></i></span></button></td>
+                      <td colspan="2" style="padding:0;">
+                        <input class="input no-border" style="font-weight:var(--weight-normal)" maxlength="255" minlength="6" name="email" required="" type="text" value="" placeholder="someone@example.com">
+                      </td>
+                      <td>
+                        <button class="button is-icon" type="submit"><span class="icon"><i class="ti ti-send"></i></span></button>
+                      </td>
                     </form>
                   </tr>
                 </tfoot>
@@ -132,7 +137,7 @@
                 <tbody>
                   {% for user in profile.users %}
                   <tr id="{{user.hex}}">
-                    <td><span class="profile">
+                    <td><span class="group">
                       {% if user in profile.owners %}<span class="icon"><i class="ti ti-crown-filled"></i></span>{% endif %}
                       <span>{{user.email}}</span>
                     </span></td>
@@ -189,6 +194,27 @@
                 </tbody>
 
             </table>
+
+            {% if current_user in profile.owners and false %}
+            <!-- Implemented, Turned Off -->
+            <h4>Change Username</h4>
+            <form data-ajax action="{{url_for('profiles_v1.ProfileChangeUsername')}}" method="post" class="block-xl">
+              <input id="profile" name="profile" type="hidden" value="{{profile.username}}" required>
+
+              <div class="field">
+                <label class="label" for="username">Username</label>
+                <input class="input" id="username" maxlength="64" minlength="1" name="username" required="" type="text" value="">
+              </div>
+
+              {{ submit('submit', 'Submit', 'primary') }}
+            </form>
+            {% endif %}
+            <div class="content">
+              <h4>Change Username</h4>
+              <p>To change your profile's username, please get in contact with support.</p>
+              <a class="button is-primary" href={{url_for('views.support')}}>Contact Support</a>
+            </div>
+
           </div>
           {% endfor %}
 

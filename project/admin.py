@@ -8,6 +8,8 @@ from project import admin, db
 from project.models import *
 from project.access_control import login_redirect, is_admin
 
+import uuid
+
 bp = Blueprint('admin_app', __name__)
 
 admin.add_link(MenuLink(name="Home", url='/'))
@@ -32,6 +34,10 @@ class CustomBaseModelView(ModelView):
   can_delete = True
   can_export = True
   column_default_sort = ('id',True)
+  def get_one(self, id):
+    if isinstance(id, str):
+      id = uuid.UUID(id)
+    return self.session.get(self.model, id)
   def is_accessible(self):
     return current_user.is_authenticated and is_admin()
   def inaccessible_callback(self, name, **kwargs):
@@ -67,6 +73,13 @@ class LogView(CustomBaseModelView):
 class OAuthView(CustomBaseModelView):
   column_list = ['user', 'provider']
   column_filters = ['provider']
+  
+class EmailView(CustomBaseModelView):
+  column_list = ['email','marketing']
+  column_filters = ['marketing']
+  can_create = False
+  can_edit = False
+  can_delete = False
 
 admin.add_view(UserView(User, db.session, category="Users"))
 admin.add_view(OAuthView(OAuthAccount, db.session, category="Users"))
@@ -74,5 +87,4 @@ admin.add_view(ProfileView(Profile, db.session, category="Users"))
 admin.add_view(RoleView(Role, db.session, category="Users"))
 admin.add_view(StripeView(StripeCustomer, db.session, category="Users"))
 admin.add_view(LogView(Log, db.session, category="Utils"))
-
-
+admin.add_view(EmailView(User, db.session, category="Utils", endpoint="user_emails", name="Emails"))

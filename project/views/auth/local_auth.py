@@ -5,8 +5,7 @@ from flask_flashy import flash
 from project import login, db
 from project.views import bp
 from project.models import User
-from project.utils import log, db_add, get_profile, get_user
-from project.common.censor import check_censor
+from project.utils import log, db_add, get_user, check_username
 from project.forms import LoginForm, LocalRegisterForm, OauthRegisterForm, EmailChangeForm, EmailForm, PasswordChangeForm
 from project.access_control import confirm_token, confirmed_check_decorator, not_confirmed_check_decorator, not_authenticated_check_decorator, validate_turnstile, login_redirect, confirm_redirect, default_redirect
 from project.services import setup_user, send_password_reset_email
@@ -98,8 +97,7 @@ def register():
       return render_template('user/register.html', local_form=local_form, oauth_form=oauth_form, ts_site_key=current_app.config["TURNSTILE_SITE_KEY"])
     
     # Check if username is registered or censored
-    profile = get_profile(local_form.username.data, False)
-    if profile or check_censor(local_form.username.data):
+    if not check_username(local_form.username.data):
       flash("Unable to create account with those credentials.", "warning")
       return render_template('user/register.html', local_form=local_form, oauth_form=oauth_form, ts_site_key=current_app.config["TURNSTILE_SITE_KEY"])
       

@@ -3,11 +3,21 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, PasswordField, BooleanField, SelectMultipleField, SelectField, HiddenField, TextAreaField
 from wtforms.validators import DataRequired, Length, ValidationError, EqualTo, Email, Regexp, Optional
 
+USERNAME_VALIDATORS = [
+  DataRequired(),
+  Length(min=1, max=64),
+  Regexp('^[A-Za-z0-9_-]+$', message="Username can only contain letters, numbers, underscores, and dashes.")
+]
+
+EMAIL_VALIDATORS = [
+  DataRequired(),
+  Length(min=6, max=255),
+  Email()
+]
+
+
 class LoginForm(FlaskForm):
-  email = StringField('Email',
-                         validators=[DataRequired(),
-                                     Length(min=6, max=255),
-                                     Email()])
+  email = StringField('Email', validators=EMAIL_VALIDATORS)
   password = PasswordField('Password',
                            validators=[DataRequired(),
                                        Length(min=8, max=255)])
@@ -15,23 +25,14 @@ class LoginForm(FlaskForm):
   submit = SubmitField('Login')
   
 class OauthRegisterForm(FlaskForm):
-  username = StringField('Username',
-                         validators=[DataRequired(),
-                                     Length(min=1, max=64),
-                                     Regexp('^[A-Za-z0-9_-]+$', message="Username can only contain letters, numbers, underscores, and dashes.")])
+  username = StringField('Username', validators=USERNAME_VALIDATORS)
   tos = BooleanField("Terms of Service", validators=[DataRequired()])
   marketing = BooleanField("Marketing", validators=[Optional()])
   submit = SubmitField()
 
 class LocalRegisterForm(FlaskForm):
-  email = StringField('Email',
-                         validators=[DataRequired(),
-                                     Length(min=6, max=255),
-                                     Email()])
-  username = StringField('Username',
-                         validators=[DataRequired(),
-                                     Length(min=1, max=64),
-                                     Regexp('^[A-Za-z0-9_-]+$', message="Username can only contain letters, numbers, underscores, and dashes.")])
+  email = StringField('Email', validators=EMAIL_VALIDATORS)
+  username = StringField('Username', validators=USERNAME_VALIDATORS)
   password = PasswordField('Password',
                            validators=[DataRequired(),
                                        Length(min=8, max=255)])
@@ -43,20 +44,17 @@ class LocalRegisterForm(FlaskForm):
   submit = SubmitField()
 
 class EmailChangeForm(FlaskForm):
-  email = StringField('New Email',
-                         validators=[DataRequired(),
-                                     Length(min=6, max=255),
-                                     Email()])
+  email = StringField('New Email', validators=EMAIL_VALIDATORS)
   password = PasswordField('Password',
                              validators=[DataRequired(),
                                          Length(min=8, max=255)])
   submit = SubmitField('Submit')
 
 class EmailForm(FlaskForm):
-  email = StringField('Email',
-                         validators=[DataRequired(),
-                                     Length(min=6, max=255),
-                                     Email()])
+  email = StringField('Email', validators=EMAIL_VALIDATORS)
+
+class UsernameForm(FlaskForm):
+  username = StringField('Username', validators=USERNAME_VALIDATORS)
 
 class PasswordChangeForm(FlaskForm):
   password = PasswordField('Password',

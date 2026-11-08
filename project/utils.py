@@ -3,6 +3,8 @@ from flask_login import current_user
 from flask_mail import Message
 
 from project import db, mail
+from project.common.censor import check_censor
+from project.forms import UsernameForm
 
 import json
 from os import environ
@@ -222,3 +224,16 @@ def send_email(recipients:list,subject:str,html:str) -> bool:
   except:
     log(f'Email Failed to Send: {subject} to {recipient}')
     return False
+
+def check_username(username:str) -> bool:
+  """Checks a given username against blocklist, censor, and list of current usernames to determine whether or not it is available for use.
+
+  Args:
+      username (str): Username to check.
+
+  Returns:
+      bool: True if available.
+  """
+  if not UsernameForm(data={'username': username}).validate() or get_profile(username, False) or check_censor(username):
+    return False
+  return True

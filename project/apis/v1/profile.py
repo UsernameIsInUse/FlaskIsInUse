@@ -1,11 +1,11 @@
-from flask import request
+from flask import request, url_for
 from flask_smorest import Blueprint
 from flask.views import MethodView
 from flask_login import current_user
 
 from project import db
 from project.services import send_profile_invite_request_email, send_profile_owner_request_email
-from project.utils import log, db_delete, get_profile, get_user, get_user_profile
+from project.utils import log, db_delete, get_profile, get_user, get_user_profile, check_username
 from project.access_control import is_owner
 
 bp = Blueprint(
@@ -13,6 +13,32 @@ bp = Blueprint(
     __name__,
     url_prefix="/api/v1/profiles"
 )
+
+@bp.route("/username")
+class ProfileChangeUsername(MethodView):
+  @bp.response(200)
+  def post(self):
+    data = request.get_json()
+    profile = get_profile(data['profile'], False)
+    
+    if not current_user.is_authenticated:
+      log(request=request, description='Failed to change username, current user not logged in')
+      return {'status':401, 'message':'You must be logged in to perform this action.'}, 401
+    elif not profile:
+      log(request=request, description='Failed to change username, profile does not exist')
+      return {'status':403, 'message':'Only a profile owner can change usernames.'}, 403
+    elif not is_owner(profile):
+      log(request=request, description='Failed to change username, current user not profile owner')
+      return {'status':403, 'message':'Only a profile owner can change usernames.'}, 403
+    elif profile.username == data['username']:
+      log(request=request, description='Failed to change username, username same as current')
+      return {'status':403, 'message':'Unable to change usernames.'}, 403
+    elif not check_username(data['username']):
+      log(request=request, description='Failed to change username, check username failed.')
+      return {'status':403, 'message':'Unable to change usernames.'}, 403
+    profile.username = data['username']
+    db.session.commit()
+    return {'status':200, 'message':f'Username changed to {profile.username}.', 'url':f'{url_for('views.user_settings', _anchor=profile.username)}'}, 200
 
 @bp.route("/user/add")
 class ProfileUserAdd(MethodView):
