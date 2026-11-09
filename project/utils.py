@@ -1,10 +1,19 @@
-from project import db
+from flask import current_app
 from flask_login import current_user
-from flask import redirect, url_for, request, abort
+from flask_mail import Message
+
+from project import db, mail
+from project.common.censor import check_censor
+from project.forms import UsernameForm
+
 import json
-from flask_flashy import flash
-from functools import wraps
 from os import environ
+from datetime import datetime, timezone
+
+from typing import TYPE_CHECKING, Optional
+if TYPE_CHECKING:
+  from flask import Request
+  from project.models import User, Profile, UserProfile, Role, UserRole
 
 def db_add(object) -> bool:
   """Adds the given object to the database and commits.
@@ -17,10 +26,35 @@ def db_add(object) -> bool:
     db.session.commit()
     return True
   except Exception as e:
-    print(e)
+    log(data={object},description="Failed to add object to database.")
     return False
 
-def log(data:dict=None, request=None, user=None, description:str=None) -> bool:
+def db_delete(object) -> bool:
+  """Deletes the given object from the database and commits.
+
+  Returns:
+      bool: True if removed.
+  """
+  try:
+    db.session.delete(object)
+    db.session.commit()
+    return True
+  except Exception as e:
+    log(data={object},description="Failed to delete object from database.")
+    return False
+
+def log(data:Optional[dict]=None, request:Optional["Request"]=None, user:Optional["User"]=None, description:str=None) -> bool:
+  """Creates a log using the provided arguments.
+
+  Args:
+      data (Optional[dict], optional): Data to include in the log. Defaults to None.
+      request (Optional[&quot;Request&quot;], optional): Request to include in the log. Defaults to None.
+      user (Optional[&quot;User&quot;], optional): User to include in the log. Defaults to None.
+      description (str, optional): Description of the log. Defaults to None.
+
+  Returns:
+      bool: Whether or not creating the log was successful.
+  """
   from project.models import Log
   try:
     user = user or current_user
@@ -51,54 +85,90 @@ def log(data:dict=None, request=None, user=None, description:str=None) -> bool:
     db_add(log)
     return True
   except Exception as e:
-    print(e)
+    #print(e)
     return False
 
-def is_admin(user=current_user):
-  return user.is_authenticated and user.profile.is_admin
-
-def login_redirect(next=True):
-  flash("You must be logged in to access this page.", "warning")
-  return redirect(url_for('views.login', next=request.url))
-
-def get_profile(username:str):
+def get_profile(username:str, not_found:bool=True) -> "Profile":
   """Returns a profile from a username.
 
   Args:
       username (str): Username of the profile.
+      not_found (bool): Whether or not to 404 if not found (defaults to True).
 
   Returns:
       Profile
   """
   from project.models import Profile
-  return Profile.query.filter_by(username=username).first_or_404()
+  if not_found:
+    return Profile.query.filter_by(username=username).first_or_404()
+  return Profile.query.filter_by(username=username).first()
 
-def admin_check_decorator(f):
-  @wraps(f)
-  def decorated_function(*args, **kwargs):
-    """Checks to see if the current_user has admin privileges."""
-    if current_user.is_authenticated:
-      if not current_user.profile.is_admin:
-        return abort(403)
-    else:
-      return login_redirect()
-    return f(*args, **kwargs)
-  return decorated_function
+def get_user(email:str, not_found:bool=True, unconfirmed:bool=False) -> "User":
+  """Returns a user from an email.
 
-def user_check_decorator(f):
-  @wraps(f)
-  def decorated_function(*args, **kwargs):
-    """Checks to see if the current_user is the same user that is attached to the profile in the keyword arguments.
-    """
-    if current_user.is_authenticated:
-      username = kwargs.get('username')
-      profile = get_profile(username)
-      if current_user.profile != profile:
-        return abort(403)
-    else:
-      return login_redirect()
-    return f(*args, **kwargs)
-  return decorated_function
+  Args:
+      email (str): Email of the user.
+      not_found (bool): Whether or not to 404 if not found (defaults to True).
+      not_found (bool): Whether or not to search unconfirmed email (defaults to False).
+
+  Returns:
+      User
+  """
+  from project.models import User
+  if unconfirmed:
+    if not_found:
+      return User.query.filter_by(unconfirmed_email=email).first_or_404()
+    return User.query.filter_by(unconfirmed_email=email).first()
+  if not_found:
+    return User.query.filter_by(email=email).first_or_404()
+  return User.query.filter_by(email=email).first()
+
+def get_user_profile(user:User, profile:Profile, not_found:bool=True) -> "UserProfile":
+  """Returns a userprofile from a user and a profile.
+
+  Args:
+      user (User): User object.
+      profile (Profile): Profile object.
+      not_found (bool): Whether or not to 404 if not found (defaults to True).
+
+  Returns:
+      UserProfile
+  """
+  from project.models import UserProfile
+  if not_found:
+    return UserProfile.query.filter_by(user=user, profile=profile).first_or_404()
+  return UserProfile.query.filter_by(user=user, profile=profile).first()
+
+def get_role(name:str, not_found:bool=True) -> "Role":
+  """Returns a role from a name.
+
+  Args:
+      name (str): Name of the role.
+      not_found (bool): Whether or not to 404 if not found (defaults to True).
+
+  Returns:
+      Role
+  """
+  from project.models import Role
+  if not_found:
+    return Role.query.filter_by(name=name).first_or_404()
+  return Role.query.filter_by(name=name).first()
+
+def get_user_role(user:User, role:Role, not_found:bool=True) -> "UserRole":
+  """Returns a userrole from a user and a role.
+
+  Args:
+      user (User): User object.
+      role (Role): Role object.
+      not_found (bool): Whether or not to 404 if not found (defaults to True).
+
+  Returns:
+      UserProfile
+  """
+  from project.models import UserRole
+  if not_found:
+    return UserRole.query.filter_by(user=user, role=role).first_or_404()
+  return UserRole.query.filter_by(user=user, role=role).first()
 
 def reset_database(dev=False) -> bool:
   """Resets the database.
@@ -114,17 +184,56 @@ def reset_database(dev=False) -> bool:
       dev_database()
     return True
   except Exception as e:
-    print(e)
+    #print(e)
     return False
   
-def dev_database() -> bool:
-  from project.models import User, Profile, Role, ProfileRole
-  profile = Profile(username=environ["DEV_USER"])
-  db_add(profile)
-  user = User(email=environ['DEV_EMAIL'], profile=profile)
+def dev_database():
+  """Creates an Admin user from environment variables."""
+  from project.models import User, Role, UserRole, Profile, UserProfile
+  user = User(email=environ['DEV_EMAIL'], confirmed=True, date_confirmed=datetime.now(timezone.utc))
   user.set_password(environ['DEV_PASS'])
   db_add(user)
-  role = Role(name="Admin")
-  db_add(role)
-  role_link = ProfileRole(profile=profile, role=role)
-  db_add(role_link)
+  profile = Profile(username=environ["DEV_USER"])
+  db_add(profile)
+  userprofile = UserProfile(user=user, profile=profile, owner=True)
+  db_add(userprofile)
+  admin = Role(name="Admin")
+  db_add(admin)
+  userrole = UserRole(user=user, role=admin)
+  db_add(userrole)
+  
+def send_email(recipients:list,subject:str,html:str) -> bool:
+  """Sends individual emails to a list of recipients.
+
+  Args:
+      recipients (list): List of recipients to individually be emailed.
+      subject (str): Subject of the email.
+      html (str): Body of the email.
+  """
+  try:
+    for recipient in recipients:
+      msg = Message(
+        subject=subject,
+        recipients=[recipient],
+        html=html,
+        sender=current_app.config["MAIL_DEFAULT_SENDER"]
+      )
+      mail.send(msg)
+      log(f'Email Sent: {subject} to {recipient}')
+      return True
+  except:
+    log(f'Email Failed to Send: {subject} to {recipient}')
+    return False
+
+def check_username(username:str) -> bool:
+  """Checks a given username against blocklist, censor, and list of current usernames to determine whether or not it is available for use.
+
+  Args:
+      username (str): Username to check.
+
+  Returns:
+      bool: True if available.
+  """
+  if not UsernameForm(data={'username': username}).validate() or get_profile(username, False) or check_censor(username):
+    return False
+  return True

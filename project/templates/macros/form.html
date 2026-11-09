@@ -1,72 +1,114 @@
-{% macro input(name) %}
+{% macro input(form, name) %}
 {% set field = form[name] %}
+{% if field.errors %}
+<div class="field is-warning">
+  {{ field.label(class="label") }}
+  {{ field(class="input")}}
+  {% for error in field.errors %}
+  <div class="notification is-quiet">
+    <p>{{ error }}</p>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
 <div class="field">
   {{ field.label(class="label") }}
-  <div class="control">
-  {% if field.errors %}
-  {{ field(class="input is-danger")}}
-  {% for error in field.errors %}
-    <p class="help is-danger">{{ error }}</p>
-    {% endfor %}
-  {% else %}
   {{ field(class="input")}}
-  {% endif %}
-  </div>
 </div>
+{% endif %}
 {% endmacro %}
 
-{% macro password(name) %}
+{% macro password(form, name) %}
 {% set field = form[name] %}
+{% if field.errors %}
+<div class="field is-warning">
+  {{ field.label(class="label") }}
+  {{ field(class="input")}}
+  {% for error in field.errors %}
+  <div class="notification is-quiet">
+    <p>{{ error }}</p>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
 <div class="field">
   {{ field.label(class="label") }}
-  <div class="control">
-  {% if field.errors %}
-  {{ field(class="input is-danger password")}}
-  {% for error in field.errors %}
-    <p class="help is-danger">{{ error }}</p>
-    {% endfor %}
-  {% else %}
   {{ field(class="input password")}}
-  {% endif %}
-  </div>
 </div>
+{% endif %}
 {% endmacro %}
 
 {% macro showPassword() %}
-<div class="field">
-  <a id="showpassword" class="credit fit small" onclick="showpasswords()">Show Password</a>
+<div class="field" x-data="{ showPassword: false }">
+  <button type="button" id="showpassword" class="button is-sm no-glow" @click="showPassword = !showPassword; togglePasswords()" x-text="showPassword ? 'Hide Password' : 'Show Password'"></button>
 </div>
 <script>
-  function showpasswords() {
+  function togglePasswords() {
     var x = document.getElementsByClassName("password");
     Array.from(x).forEach(function (element) {
       if (element.type === "password") {
         element.type = "text";
-        $('#showpassword').addClass('solid')
       } else {
         element.type = "password";
-        $('#showpassword').removeClass('solid')
       };
     });
-  } ;
+  };
 </script>
 {% endmacro %}
 
-{% macro checkbox(name, display) %}
-<div class="field">
-  <div class="control">
-    <label class="checkbox">
-      <input id="{{name}}" name="{{name}}" type="checkbox">
-      {{display}}
-    </label>
-  </div>
+{% macro checkbox(form, name) %}
+{% set field = form[name] %}
+<div class="field" for="{{field.name}}">
+  <label class="checkbox">
+    {{ field(class="checkbox is-success")}}
+    <span class="is-base">{{ field.label.text }}</span>
+  </label>
+</div>
+{% endmacro %}
+
+{% macro honeypot() %}
+<div class="field" style="width:0;opacity:0;display:table-column;">
+  <label class="checkbox">
+    <input id="phone" name="phone" type="checkbox">
+    If you are a person, do not check this.
+  </label>
 </div>
 {% endmacro %}
 
 {% macro submit(name, display, color) %}
 <div class="field">
-  <div class="control">
-    <input id="{{name}}" name="{{name}}" type="{{name}}" value="{{display}}" class="button is-{{color}}">
-  </div>
+  <input id="{{name}}" name="{{name}}" type="submit" value="{{display}}" class="button is-{{color}}">
 </div>
+{% endmacro %}
+
+{% macro cft() %}
+<div id="cft" class="is-hidden field" x-init="createTurnstile()">
+  <div id="ts-container-oauth"></div>
+</div>
+
+<script>
+  function createTurnstile() {
+    let widgetId = null;
+    let solved = false;
+    var cft = document.querySelector('#cft')
+
+    widgetId = turnstile.render('#ts-container-oauth', {
+      sitekey: '{{ts_site_key}}',
+      execution: 'execute',
+      appearance: 'always',
+      callback: function (token) {
+        solved = true;
+      },
+      'error-callback': function () {
+        cft.classList.toggle('is-hidden');
+      }
+    })
+    turnstile.execute(widgetId);
+    setTimeout(() => {
+      if (!solved) {
+        cft.classList.toggle('is-hidden');
+      }
+    }, 5000);
+  };
+</script>
 {% endmacro %}

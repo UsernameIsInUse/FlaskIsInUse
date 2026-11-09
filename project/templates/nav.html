@@ -1,39 +1,20 @@
-<nav class="navbar">
-    <div class="navbar-brand">
-        <a class="navbar-item" href="{{url_for('views.index')}}">
-            <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Logo" class="logo">
-        </a>
-        <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="navbarBasicExample">
-            <span aria-hidden="true"></span>
-            <span aria-hidden="true"></span>
-            <span aria-hidden="true"></span>
-            <span aria-hidden="true"></span>
-      </a>
+<header class="header">
+  <nav class="nav is-translucent">
+    <div class="nav-item">
+      <button
+      class="button is-ghost is-icon"
+      aria-label="Toggle Sidebar"
+      @click="sidebarOpen = !sidebarOpen">
+      <span class="icon"><i class="ti ti-layout-sidebar-filled"></i></span></button>
+      <a href="{{url_for('views.index')}}" class="logo" @click="current = 'home'"><span>Flask</span>IsInUse</a>
     </div>
-    <div class="navbar-menu">
-        <div class="navbar-start">
-            <!--<a class="navbar-item" href="{{url_for('views.index')}}">Test</a>-->
-        </div>
-        <div class="navbar-end">
-          {% if current_user.is_authenticated %}
-          <a class="navbar-item" href="{{current_user.profile.url}}">Profile</a>
-          {% else %}
-          <a class="navbar-item" href="{{url_for('views.register')}}">Register</a>
-          <a class="navbar-item" href="{{url_for('views.login')}}">Login</a>
-          {% endif %}
-      </div>
+    <div class="nav-item">
+      {% if current_user.is_authenticated %}
+      <a class="button is-ghost" href="{{url_for('views.user_settings')}}">Settings</a>
+      {% else %}
+      <a class="button is-ghost" href="{{url_for('views.register')}}">Register</a>
+      <a class="button is-ghost" href="{{url_for('views.login')}}">Login</a>
+      {% endif %}
     </div>
-    <script>
-      $(document).ready(function() {
-
-        // Check for click events on the navbar burger icon
-        $(".navbar-burger").click(function() {
-      
-            // Toggle the "is-active" class on both the "navbar-burger" and the "navbar-menu"
-            $(".navbar-burger").toggleClass("is-active");
-            $(".navbar-menu").toggleClass("is-active");
-      
-        });
-      });
-    </script>
-</nav>
+  </nav>
+</header>

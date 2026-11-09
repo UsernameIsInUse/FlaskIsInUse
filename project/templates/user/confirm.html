@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block head %}
+{% endblock %}
+
+{% block title %}
+Confirm Email |
+{% endblock %}
+
+{% block hidebar %}
+hide
+{% endblock %}
+
+{% block content %}
+<section class="section">
+  <input
+    hidden
+    x-data="{
+      url: '{{url_for('users_v1.UserSendEmailConfirmation')}}',
+      csrfToken: '{{ csrf_token() }}'
+    }"
+    x-init="ajax(url, {}, 'POST', csrfToken)"
+  >
+  {% from 'macros/form.html' import input, submit with context %}
+  <div class="container is-sm content">
+    <h1>Confirm your Email</h1>
+    <p>Check your email (including your spam folder) to confirm your email.</p>
+    <p>Confirmed on a different device? <a href="{{url_for('views.user_settings')}}">You're all set!</a></p>
+    <p>Did you mistype your email? Change it below.</a></p>
+    <form action="" method="post">
+      {{ form.hidden_tag() }}
+
+      {{ input(form,'email') }}
+
+      {{ submit('submit', 'Submit', 'primary') }}
+    </form>
+  </div>
+</section>
+{% endblock %}

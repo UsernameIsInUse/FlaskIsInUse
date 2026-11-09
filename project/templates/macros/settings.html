@@ -1,0 +1,3 @@
+{% macro item(name,target) %}
+<li><a href="#{{target}}" @click="current = '{{target}}'; if ( sidebarFull ) { sidebarOpen = false };" :class="{ 'is-active' : current === '{{target}}' }" class="">{{name}}</a></li>
+{% endmacro %}

@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block pre %}
+<link rel="preconnect" href="https://challenges.cloudflare.com">
+{% endblock %}
+{% block head %}
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"></script>
+{% endblock %}
+
+{% block title %}Register | {% endblock %}
+
+{% block content %}
+  {% from 'macros/form.html' import input, password, showPassword, checkbox, submit, cft, honeypot with context %}
+  {% from 'macros/oauth.html' import register %}
+  <section class="section">
+    <div class="container is-sm content">
+      <h1>Sign Up</h1>
+      <form action="" method="post" x-data="{ local: false }">
+        {{ local_form.hidden_tag() }}
+
+        {{ input(local_form,'username') }}
+
+        <template x-if="local">
+          <div class="block">
+            {{ input(local_form,'email') }}
+            {{ password(local_form,'password') }}
+            {{ password(local_form,'password2') }}
+            {{ showPassword() }}
+          </div>
+        </template>
+
+        <div class="field">
+          <label class="checkbox">
+            <input id="tos" name="tos" type="checkbox" class="checkbox is-success" required>
+            <span class="is-base">I agree to the <a href='{{url_for("views.tos")}}' target="_blank" style="text-decoration: underline;">terms and conditions</a></span>
+          </label>
+        </div>
+
+        <div class="field">
+          <label class="checkbox">
+            <input id="marketing" name="marketing" type="checkbox" class="checkbox is-success">
+            Recieve occassional emails <small>(we promise not to spam you)</small>
+          </label>
+        </div>
+
+        {{ honeypot() }}
+
+        {{ cft() }}
+
+        {{ register("Sign Up") }}
+
+      </form>
+      <small><a href='{{url_for("views.login")}}' class="is-quiet">Already have an account? Login instead!</a></small>
+    </div>
+  </section>
+{% endblock %}

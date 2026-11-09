@@ -1,32 +1,37 @@
 
 
 <!DOCTYPE html>
-<html lang="en">
-<head>
+<html lang="en" data-theme="" class="default">
+  <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-    <link rel="preconnect" href="https://ajax.googleapis.com" />
-    <!--<link rel="preconnect" href="https://use.typekit.net" />-->
-    <link rel="preconnect" href="https://kit.fontawesome.com" />
+    <link rel="preconnect" href="https://cdn.jsdelivr.net/" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     {% block pre %}{% endblock %}
 
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.2/css/bulma.min.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <script src="https://kit.fontawesome.com/{{font_awesome}}.js" crossorigin="anonymous" async></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <link rel="stylesheet" type="text/css"  href="{{ url_for('static', filename='main.css') }}">
+    <link rel="stylesheet" type="text/css"  href="{{ url_for('static', filename='integrations.css') }}">
+    <link rel="stylesheet" type="text/css"  href="{{ url_for('static', filename='overrides.css') }}">
 
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Commissioner:wght@100..900&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+
+    {% block alpine %}{% endblock %}
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
     <link rel="icon" href="{{ url_for('static', filename='img/favicon.png') }}" type="image/png">
     <link rel="shortcut icon" href="{{ url_for('static', filename='img/favicon.png') }}" type="image/png">
 
     <meta name="description" content="Template description.">
     <meta name="theme-color" content="#000000">
     {% block meta %}
-        <meta property="og:title" content="{{app_name}}">
-        <meta property="og:description" content="Template description.">
-        <meta property="og:image" content="{{url_for('static',filename='img/social.png', _external=True)}}">
-        <meta name="twitter:title" content="{{app_name}}">
-        <meta name="twitter:description" content="Template description.">
+      <meta property="og:title" content="{{app_name}}">
+      <meta property="og:description" content="Template description.">
+      <meta property="og:image" content="{{url_for('static',filename='img/social.png', _external=True)}}">
+      <meta name="twitter:title" content="{{app_name}}">
+      <meta name="twitter:description" content="Template description.">
     {% endblock %}
     <meta property="og:type" content="website">
     <meta property="og:url" content="{{ url_for(request.endpoint, _external=True, **request.view_args) }}">
@@ -36,57 +41,195 @@
     {% block head %}{% endblock %}
 
     <title>{% block title %} {% endblock %}{{app_name}}</title>
-</head>
-<body>
-    <script>0</script>
-    {% with messages = get_flashy_messages() %}
-        {% if messages %}
-            <ul class="flashes">
-            {% for message in messages %}
-                {% if message.url %}
-                    <a href="{{ message.url }}"><li class="button {% if message.category %}is-{{ message.category }} is-outlined{% endif %}">
-                      <span class="level">
-                        <span class="level-item">{{ message.message }}</span>
-                        <span class="level-item"><i class="fa-solid fa-arrow-up-right-from-square"></i></span>
-                      </span>
-                    </li></a>
-                {% else %}
-                    <li class="button {% if message.category != "message" %}is-{{ message.category }} is-outlined{% endif %}">{{ message.message }}</li>
-                {% endif %}
-            {% endfor %}
-            </ul>
-        {% endif %}
-    {% endwith %}
-    {% include "nav.html" %}
-    <div class="content">
-        {% block content %}{% endblock %}
-    </div>
-    <a href="#" class="button is-small is-info is-outlined version">{{version}}</a>
-    <script>
-      function fadeOutFlashes() {
-        // Select all li elements inside the ul with class "flashes"
-        $('ul.flashes li').each(function() {
-          var flashItem = $(this);
-  
-          // Set a timeout for 10 seconds (10000 ms) and then fade out and remove the element
-          setTimeout(function() {
-            flashItem.fadeOut('slow', function() {
-              flashItem.remove();
-            });
-          }, 10000); // 10 seconds
-        });
-      };
-      
-      // Call the fadeOutFlashes function to start fading out messages
-      $(document).ready(function() {
-          fadeOutFlashes();
-      });
 
-      $('ul.flashes li').click(function() {
-        $(this).fadeOut('slow', function() {
-            $(this).remove();
-        });
-      });
+    <script> // Cookies
+      function setCookie(cname, cvalue, exdays) {
+        const d = new Date();
+        d.setTime(d.getTime() + (exdays*24*60*60*1000));
+        let expires = "expires="+ d.toUTCString();
+        document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+      }
+
+      function getCookie(cname) {
+        let name = cname + "=";
+        let decodedCookie = decodeURIComponent(document.cookie);
+        let ca = decodedCookie.split(';');
+        for(let i = 0; i <ca.length; i++) {
+          let c = ca[i];
+          while (c.charAt(0) == ' ') {
+            c = c.substring(1);
+          }
+          if (c.indexOf(name) == 0) {
+            return c.substring(name.length, c.length);
+          }
+        }
+        return null;
+      }
+      
+      function checkCookie(cname) {
+        let cookie = getCookie(cname);
+        if (cookie != null) {
+          return true
+        } else {
+          return false
+        }
+      }
     </script>
-</body>
+
+    <script> // Ajax
+      async function ajax(url, data = {}, method = "POST", csrfToken = null) {
+        try {
+          const response = await fetch(url, {
+            method,
+            headers: {
+              "Content-Type": "application/json",
+              "X-CSRFToken": csrfToken,
+            },
+            credentials: "same-origin",
+            body: method.toUpperCase() !== "GET" ? JSON.stringify(data) : undefined
+          });
+
+          if (await response.status != 204) {
+            const responseData = await response.json();
+            var message = responseData.message
+            var url = responseData.url
+          } else {
+            var message = null
+            var url = null
+          }
+          
+          if (response.ok) {
+            notify(message ? message : "Action successful", "info");
+
+            if (url) {
+              location.assign(url);
+              location.reload();
+            }
+            return true
+          } else {
+            throw new Error();
+          };
+          
+        } catch (error) {
+          notify(message ? message : "Something went wrong.", "warning");
+          return false
+        };
+      };
+
+      async function submitAjaxForm(form) {
+        const formData = Object.fromEntries(new FormData(form));
+        const csrfToken = formData.csrf_token || "{{ csrf_token() }}";
+        return await ajax(form.action, formData, form.method.toUpperCase(), csrfToken)
+      }
+
+      document.addEventListener('submit', async function(e) {
+        const form = e.target.closest("form[data-ajax]");
+        if (!form) return;
+        e.preventDefault();
+        await submitAjaxForm(form);
+      })
+    </script>
+  </head>
+
+  <body
+    x-data="{ theme: '', scheme: '', sidebarOpen: {% if sidebar %}true{% else %}false{% endif %}, sidebarFull: false, initialized: false }"
+    x-init="sidebarFull = window.innerWidth < 608;
+            if ( sidebarOpen && window.innerWidth < 608 ) { sidebarOpen = false };
+            $nextTick(() => initialized = true);
+            if (theme === '' && checkCookie('theme') ) { theme = getCookie('theme') } else if (theme === '') { theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'; };
+            if (scheme === '' && checkCookie('scheme') ) { scheme = getCookie('scheme') } else if (scheme === '') { scheme = 'default' }"
+    @resize.window="sidebarFull = window.innerWidth < 608"
+    :data-theme="theme"
+    :data-scheme="scheme"
+  >
+    <script>0</script>
+
+    <ul id="notifications"
+      class="notifications"
+      x-data="{
+        notifs: [
+          {% with messages = get_flashy_messages() %}
+          {% if messages %}
+          {% for message in messages %}
+          {% if not message.url %}
+            { id: {{ loop.index }}, message: `{{ message.message }}`, color: `{{ message.category }}`, url: `{{ message.url }}`{% if message.ti %}, ti: `{{ message.ti }}`{% endif %} }
+          {% endif %}
+          {% endfor %}
+          {% endif %}
+          {% endwith %}
+        ],
+        linkNotifs: [
+          {% with messages = get_flashy_messages() %}
+          {% if messages %}
+          {% for message in messages %}
+          {% if message.url %}
+            { id: {{ loop.index }}, message: `{{ message.message }}`, color: `{{ message.category }}`, url: `{{ message.url }}`{% if message.ti %}, ti: `{{ message.ti }}`{% endif %} }
+          {% endif %}
+          {% endfor %}
+          {% endif %}
+          {% endwith %}
+        ],
+        }"
+    >
+      <template x-for="notif in linkNotifs" :key="notif.id" >
+        <a :href="notif.url">
+          <li
+            class="notification"
+            :class="`is-${notif.color}`"
+            role="alert"
+          >
+            <span class="group is-flex-flow-row is-align-start">
+              <span class="icon is-strong"><i class="ti" :class="'ti' in notif ? `ti-${notif.ti}` : 'ti-external-link'"></i></span>
+              <span x-text="notif.message"></span>
+            </span>
+          </li>
+        </a>
+      </template>
+      <template x-for="notif in notifs" :key="notif.id" >
+        <li
+          class="notification"
+          :class="`is-${notif.color}`"
+          role="alert"
+          x-text="notif.message"
+          x-data="{ open: true }"
+          @click="open = ! open"
+          x-show="open"
+          x-transition
+          x-transition:leave.duration.500ms
+        ></li>
+      </template>
+      <script>
+        function notify(message, color, url=null) {
+          const { notifs, linkNotifs } = Alpine.$data(
+            document.getElementById("notifications")
+          );
+          const list = url ? linkNotifs : notifs;
+          const last = list[list.length - 1];
+
+          list.push({
+            id: last ? last.id + 1 : 1,
+            message,
+            color,
+            ...(url ? { url } : {}),
+          });
+        }
+      </script>
+    </ul>
+
+    {% include "nav.html" %}
+
+    <main
+      class='has-sidebar'
+      :class="{ 'open': sidebarOpen, 'full': sidebarFull, 'no-transitions': !initialized, 'is-hidden': !initialized }"
+    >
+      {% include "sidebar.html" %}
+
+      <div class="main">
+        {% block content %}{% endblock %}
+      </div>
+    </main>
+
+    <span class="chip is-quiet is-info version">{{version}}</span>
+
+  </body>
 </html>

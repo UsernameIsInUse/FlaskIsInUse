@@ -1,0 +1,230 @@
+{% extends 'base.html' %}
+
+{% block pre %}{% endblock %}
+{% block head %}
+<script src="https://js.stripe.com/v3/"></script>
+<script type="text/javascript" src="{{url_for('static', filename='js/stripe.js')}}"></script>
+{% endblock %}
+
+{% block title %}Settings | {% endblock %}
+
+{% block content %}
+{% from 'macros/settings.html' import item %}
+{% from 'macros/form.html' import input, password, showPassword, checkbox, submit with context %}
+{% from 'macros/oauth.html' import oauths, google_link with context %}
+  <section class="section" x-data="{ current: window.location.hash.substring(1) || 'account' }">
+    <div class="container">
+      <h1>Settings</h1>
+      <div class="columns is-gap-lg">
+
+        <div class="card" style="height: fit-content">
+          <h5>General</h5>
+          <ul class="menu is-ghost">
+            {{ item(name="Account", target="account") }}
+            {{ item(name="Preferences", target="preferences") }}
+            {{ item(name="Manage Subscription", target="subscription") }}
+          </ul>
+          <h5>Profiles</h5>
+          <ul class="menu is-ghost">
+            {% for profile in current_user.profiles %}
+            {{ item(name=profile.username, target=profile.username) }}
+            {% endfor %}
+          </ul>
+          <h5>Other</h5>
+          <ul class="menu is-ghost">
+            {{ item(name="Close Account", target="close") }}
+          </ul>
+        </div>
+
+        <div class="flex-10">
+
+          <div id="account" x-show="current === 'account'">
+            <h4>One-Click Sign In</h4>
+            <div class="group block-xl" >
+              {% if current_user.google %}
+              {{google_link('Disconnect', url_for('views.login_oauth', provider='google', disconnect='true'))}}
+              {% else %}
+              {{google_link('Connect', url_for('views.login_oauth', provider='google', connect='true'))}}
+              {% endif %}
+            </div>
+
+            <h4>{% if current_user.local_auth %}Change{% else %}Set{% endif %} Password</h4>
+            <a class="button is-primary block-xl" href={{url_for('views.password_request_send', email=current_user.email)}}>Reset Password</a>
+
+            <h4>Change Email</h4>
+            <form action="" method="post" class="block-xl">
+              {{ email_form.hidden_tag() }}
+
+              {{ input(email_form,'email') }}
+
+              {{ submit('submit', 'Submit', 'primary') }}
+            </form>
+          </div>
+
+          <div id="preferences" x-show="current === 'preferences'">
+            <h4>Marketing Preferences</h4>
+            <div class="field">
+              <label class="checkbox">
+                <input id="marketing" name="marketing" type="checkbox" class="checkbox is-success"
+                  {% if current_user.marketing %}checked{% endif %}
+                  x-data="{
+                    url: '{{url_for('users_v1.UserMarketingSwitch')}}',
+                    csrfToken: '{{ csrf_token() }}'
+                  }"
+                  @click="ajax(url, {}, 'PATCH', csrfToken)"
+                >
+                Recieve occassional emails <small>(we promise not to spam you)</small>
+              </label>
+            </div>
+          </div>
+
+          <div id="subscription" x-show="current === 'subscription'">
+            <h4>Manage Subscription</h4>
+            {% if not current_user.pro_override %}
+              <div class="group">
+              {% if current_user.stripe%}
+                {% if current_user.stripe.active %}
+                <a class="button is-primary portal">Manage Subscription</a>
+                {% else %}
+                <a class="button is-primary portal">View Invoice History</a>
+                {% endif %}    
+              {% endif %}
+              {% if not current_user.stripe or not current_user.stripe.active %}
+              <a class="button is-primary monthly">Get Started - Monthly</a>
+              <a class="button is-primary yearly">Get Started - Yearly</a>
+              {% endif %}
+              </div>
+            {% else %}
+            <p>Subscribed for free! Congrats!</p>
+            {% endif %}
+          </div>
+
+          {% for profile in current_user.profiles %}
+          <div id="{{profile.username}}" x-show="current === '{{profile.username}}'">
+
+            <h4>Users</h4>
+            <table
+              class="is-striped"
+              x-data
+            >
+
+              <thead>
+                <tr>
+                  <th>User</th>
+                  {% if current_user in profile.owners %}
+                  <th><abbr title="Membership">Mem</abbr></th>
+                  <th><abbr title="Ownership">Own</abbr></th>
+                  {% endif %}
+                </tr>
+              </thead>
+
+              {% if current_user in profile.owners %}
+                <tfoot>
+                  <tr>
+                    <form data-ajax action="{{url_for('profiles_v1.ProfileUserAdd')}}" method="POST">
+                      <input id="profile" name="profile" type="hidden" value="{{profile.username}}" required>
+                      <td colspan="2" style="padding:0;">
+                        <input class="input no-border" style="font-weight:var(--weight-normal)" maxlength="255" minlength="6" name="email" required="" type="text" value="" placeholder="someone@example.com">
+                      </td>
+                      <td>
+                        <button class="button is-icon" type="submit"><span class="icon"><i class="ti ti-send"></i></span></button>
+                      </td>
+                    </form>
+                  </tr>
+                </tfoot>
+                {% endif %}
+
+                <tbody>
+                  {% for user in profile.users %}
+                  <tr id="{{user.hex}}">
+                    <td><span class="group">
+                      {% if user in profile.owners %}<span class="icon"><i class="ti ti-crown-filled"></i></span>{% endif %}
+                      <span>{{user.email}}</span>
+                    </span></td>
+                    {% if current_user in profile.owners %}
+                    <td>
+                      <button class="button is-icon is-danger"
+                      {% if user == current_user %}disabled{% else %}
+                        x-data="{
+                          url: '{{url_for('profiles_v1.ProfileUserRemove')}}',
+                          csrfToken: '{{ csrf_token() }}',
+                          data: { email : '{{user.email}}', profile: '{{profile.username}}' },
+                          id: '{{user.hex}}'
+                        }"
+                        @click="if (confirm('Are you sure you want you remove this user?')) {
+                          if ( ajax(url, data, 'POST', csrfToken) ) {
+                            document.getElementById(id).remove()
+                          }
+                        }"
+                      {% endif %}
+                      ><span class="icon"><i class="ti ti-x"></i></span></button>
+                    </td>
+
+                    <td>
+                      <button class="button is-icon is-warning"
+                      {% if user == current_user %}disabled{% endif %}{% if user not in profile.owners %}
+                        x-data="{
+                          url: '{{url_for('profiles_v1.ProfileUserOwnerAdd')}}',
+                          csrfToken: '{{ csrf_token() }}',
+                          data: { email : '{{user.email}}', profile: '{{profile.username}}' },
+                        }"
+                        @click="if (confirm('Are you sure you want to invite this user to be an owner of the profile? This action is irreversible.')) {
+                          ajax(url, data, 'POST', csrfToken);
+                        }"
+                      ><span class="icon"><i class="ti ti-crown-filled"></i></span>
+                      {% else %}
+                        x-data="{
+                          url: '{{url_for('profiles_v1.ProfileUserOwnerRemove')}}',
+                          csrfToken: '{{ csrf_token() }}',
+                          data: { email : '{{user.email}}', profile: '{{profile.username}}' },
+                        }"
+                        @click="if (confirm('Are you sure you want to remove this user as an owner of the profile?')) {
+                          if ( ajax(url, data, 'POST', csrfToken) ) {
+                            location.reload();
+                          }
+                        }"
+                      ><span class="icon"><i class="ti ti-x"></i></span>
+                      {% endif %}
+                      </button>
+                    </td>
+
+                    {% endif %}
+                  </tr>
+                  {% endfor %}
+                </tbody>
+
+            </table>
+
+            {% if current_user in profile.owners and false %}
+            <!-- Implemented, Turned Off -->
+            <h4>Change Username</h4>
+            <form data-ajax action="{{url_for('profiles_v1.ProfileChangeUsername')}}" method="post" class="block-xl">
+              <input id="profile" name="profile" type="hidden" value="{{profile.username}}" required>
+
+              <div class="field">
+                <label class="label" for="username">Username</label>
+                <input class="input" id="username" maxlength="64" minlength="1" name="username" required="" type="text" value="">
+              </div>
+
+              {{ submit('submit', 'Submit', 'primary') }}
+            </form>
+            {% endif %}
+            <div class="content">
+              <h4>Change Username</h4>
+              <p>To change your profile's username, please get in contact with support.</p>
+              <a class="button is-primary" href={{url_for('views.support')}}>Contact Support</a>
+            </div>
+
+          </div>
+          {% endfor %}
+
+          <div id="close" x-show="current === 'close'" class="content">
+            <h4>Close Account</h4>
+            <p>To close your account, please get in contact with support.</p>
+            <a class="button is-primary" href={{url_for('views.support')}}>Contact Support</a>
+          </div>
+
+        </div>
+    </div>
+  </section>
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block head %}
+{% endblock %}
+
+{% block title %}
+Email Confirmed |
+{% endblock %}
+
+{% block hidebar %}
+hide
+{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="container is-sm content">
+    <h1>Email confirmed!</h1>
+    <p>To continue, if you started setting up on another device you can head there now, or you can <a href="{{url_for('views.login')}}">login!</a></p>
+  </div>
+</section>
+{% endblock %}
