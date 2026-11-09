@@ -1,9 +1,9 @@
-{% macro input(form, name, model=False) %}
+{% macro input(form, name) %}
 {% set field = form[name] %}
 {% if field.errors %}
 <div class="field is-warning">
   {{ field.label(class="label") }}
-  {{ field(class="input" **{"x-model": model})}}
+  {{ field(class="input")}}
   {% for error in field.errors %}
   <div class="notification is-quiet">
     <p>{{ error }}</p>
@@ -13,7 +13,7 @@
 {% else %}
 <div class="field">
   {{ field.label(class="label") }}
-  {{ field(class="input", **{"x-model": model})}}
+  {{ field(class="input")}}
 </div>
 {% endif %}
 {% endmacro %}
@@ -56,11 +56,12 @@
 </script>
 {% endmacro %}
 
-{% macro checkbox(name, display) %}
-<div class="field">
+{% macro checkbox(form, name) %}
+{% set field = form[name] %}
+<div class="field" for="{{field.name}}">
   <label class="checkbox">
-    <input id="{{ name }}" name="{{ name }}" type="checkbox" class="checkbox is-success" required>
-    <span class="is-base">{{ display }}</span>
+    {{ field(class="checkbox is-success")}}
+    <span class="is-base">{{ field.label.text }}</span>
   </label>
 </div>
 {% endmacro %}

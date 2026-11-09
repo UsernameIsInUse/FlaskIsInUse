@@ -3,7 +3,6 @@ aniso8601==10.0.1
 apispec==6.10.0
 attrs==26.1.0
 Authlib==1.9.3
-backports.zstd==1.6.0
 better-profanity==0.7.0
 blinker==1.9.0
 brotli==1.2.1
