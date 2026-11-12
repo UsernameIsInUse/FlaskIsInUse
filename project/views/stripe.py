@@ -7,6 +7,8 @@ from project.stripe import stripe, stripe_keys
 from project.models import User, StripeCustomer
 from project.extensions import db, csrf
 
+from uuid import UUID
+
 @bp.route('/subscription/', methods=['POST','GET'])
 @login_required
 def subscription():
@@ -45,7 +47,7 @@ def stripe_webhook():
     user_id = session["client_reference_id"]
     customer_id = session["customer"]
     subscription_id = session["subscription"]
-    user = User.query.get(int(user_id))
+    user = db.session.get(User, UUID(user_id))
     if user.stripe:
       user.stripe.stripe_customer_id=customer_id
       user.stripe.stripe_subscription_id=subscription_id
@@ -65,7 +67,9 @@ def stripe_webhook():
   elif event["type"] == "customer.subscription.deleted":
     session = event["data"]["object"]
     customer_id = session["customer"]
-    customer = StripeCustomer.query.filter_by(stripe_customer_id=customer_id).first()
+    customer = db.session.scalar(
+      db.select(StripeCustomer).where(StripeCustomer.stripe_customer_id == customer_id)
+    )
     customer.active=False
     log(user=current_user, request=request, description='Unsubscribed via stripe')
     db.session.commit()

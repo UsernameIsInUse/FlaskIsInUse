@@ -9,6 +9,7 @@ from project.forms import UsernameForm
 import json
 from os import environ
 from datetime import datetime, timezone
+from sqlalchemy import and_
 
 from typing import TYPE_CHECKING, Optional
 if TYPE_CHECKING:
@@ -100,8 +101,12 @@ def get_profile(username:str, not_found:bool=True) -> "Profile":
   """
   from project.models import Profile
   if not_found:
-    return Profile.query.filter_by(username=username).first_or_404()
-  return Profile.query.filter_by(username=username).first()
+    return db.first_or_404(
+      db.select(Profile).where(Profile.username == username)
+    )
+  return db.session.scalar(
+    db.select(Profile).where(Profile.username == username)
+  )
 
 def get_user(email:str, not_found:bool=True, unconfirmed:bool=False) -> "User":
   """Returns a user from an email.
@@ -117,11 +122,19 @@ def get_user(email:str, not_found:bool=True, unconfirmed:bool=False) -> "User":
   from project.models import User
   if unconfirmed:
     if not_found:
-      return User.query.filter_by(unconfirmed_email=email).first_or_404()
-    return User.query.filter_by(unconfirmed_email=email).first()
+      return db.first_or_404(
+        db.select(User).where(User.unconfirmed_email == email)
+      )
+    return db.session.scalar(
+      db.select(User).where(User.unconfirmed_email == email)
+    )
   if not_found:
-    return User.query.filter_by(email=email).first_or_404()
-  return User.query.filter_by(email=email).first()
+    return db.first_or_404(
+      db.select(User).where(User.email == email)
+    )
+  return db.session.scalar(
+    db.select(User).where(User.email == email)
+  )
 
 def get_user_profile(user:User, profile:Profile, not_found:bool=True) -> "UserProfile":
   """Returns a userprofile from a user and a profile.
@@ -136,8 +149,12 @@ def get_user_profile(user:User, profile:Profile, not_found:bool=True) -> "UserPr
   """
   from project.models import UserProfile
   if not_found:
-    return UserProfile.query.filter_by(user=user, profile=profile).first_or_404()
-  return UserProfile.query.filter_by(user=user, profile=profile).first()
+    return db.first_or_404(
+      db.select(UserProfile).where(and_(UserProfile.user == user, UserProfile.profile == profile))
+    )
+  return db.session.scalar(
+    db.select(UserProfile).where(and_(UserProfile.user == user, UserProfile.profile == profile))
+  )
 
 def get_role(name:str, not_found:bool=True) -> "Role":
   """Returns a role from a name.
@@ -151,8 +168,12 @@ def get_role(name:str, not_found:bool=True) -> "Role":
   """
   from project.models import Role
   if not_found:
-    return Role.query.filter_by(name=name).first_or_404()
-  return Role.query.filter_by(name=name).first()
+    return db.first_or_404(
+      db.select(Role).where(Role.name == name)
+    )
+  return db.session.scalar(
+    db.select(Role).where(Role.name == name)
+  )
 
 def get_user_role(user:User, role:Role, not_found:bool=True) -> "UserRole":
   """Returns a userrole from a user and a role.
@@ -167,8 +188,12 @@ def get_user_role(user:User, role:Role, not_found:bool=True) -> "UserRole":
   """
   from project.models import UserRole
   if not_found:
-    return UserRole.query.filter_by(user=user, role=role).first_or_404()
-  return UserRole.query.filter_by(user=user, role=role).first()
+    return db.first_or_404(
+      db.select(UserRole).where(and_(UserRole.user == user, UserRole.role == role))
+    )
+  return db.session.scalar(
+    db.select(UserRole).where(and_(UserRole.user == user, UserRole.role == role))
+  )
 
 def reset_database(dev=False) -> bool:
   """Resets the database.

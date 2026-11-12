@@ -8,8 +8,10 @@ from project.models import User, OAuthAccount
 from project.utils import log, db_add, db_delete, get_user
 from project.services import setup_user
 from project.access_control import login_redirect, default_redirect
+from project.extensions import db
 
 from datetime import datetime, timezone
+from sqlalchemy import and_
 
 @bp.route('/auth/<provider>')
 def login_oauth(provider:str):
@@ -45,7 +47,9 @@ def google_callback():
     abort(400)
     
   userinfo = token['userinfo']
-  oauth_account = OAuthAccount.query.filter_by(provider=provider, provider_user_id = userinfo['sub']).first()
+  oauth_account = db.session.scalar(
+    db.select(OAuthAccount).where(and_(OAuthAccount.provider == provider, OAuthAccount.provider_user_id == userinfo['sub']))
+  )
   
   if oauth_type == "login":
     if oauth_account:
