@@ -2,7 +2,7 @@ from flask_login import UserMixin
 
 from project.extensions import db
 from project.utils import log
-from project.stripe import stripe
+from project.stripe import stripe_client
 
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import Uuid
@@ -145,21 +145,21 @@ class StripeCustomer(db.Model):
   @property
   def get_subscription(self):
     try:
-      return stripe.Subscription.retrieve(self.stripe_subscription_id)
+      return stripe_client.v1.subscriptions.retrieve(self.stripe_subscription_id)
     except:
       return False
 
   @property
   def get_customer(self):
     try:
-      return stripe.Customer.retrieve(self.stripe_customer_id)
+      return stripe_client.v1.customers.retrieve(self.stripe_customer_id)
     except:
-        return False
+      return False
 
   @property
   def get_product(self):
     try:
-      return stripe.Product.retrieve(self.get_subscription.plan.product)
+      return stripe_client.v1.products.retrieve(self.get_subscription.plan.product)
     except:
       return False
   

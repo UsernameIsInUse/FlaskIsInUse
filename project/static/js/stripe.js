@@ -5,7 +5,7 @@ fetch("/api/v1/subscriptions/config")
 .then((data) => {
   const stripe = Stripe(data.publicKey);
   // Event handler
-  document.querySelectorAll(".monthly").forEach(button => {
+  document.querySelectorAll(".stripe-monthly").forEach(button => {
     button.addEventListener("click", () => {
       // Get Checkout Session ID
       fetch("/api/v1/subscriptions/create-checkout-session/monthly")
@@ -20,7 +20,7 @@ fetch("/api/v1/subscriptions/config")
       });
     });
   });
-  document.querySelectorAll(".yearly").forEach(button => {
+  document.querySelectorAll(".stripe-yearly").forEach(button => {
     button.addEventListener("click", () => {
       // Get Checkout Session ID
       fetch("/api/v1/subscriptions/create-checkout-session/yearly")
@@ -35,7 +35,7 @@ fetch("/api/v1/subscriptions/config")
       });
     });
   });
-  document.querySelectorAll(".portal").forEach(button => {
+  document.querySelectorAll(".stripe-portal").forEach(button => {
     button.addEventListener("click", () => {
       fetch("/api/v1/subscriptions/create-portal-session")
       .then((result) => result.json())

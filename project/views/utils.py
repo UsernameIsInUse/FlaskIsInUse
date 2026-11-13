@@ -20,6 +20,7 @@ def log_page_view():
     '/load',
     '/api',
     '/_debug'
+    '/subscription'
   ]
   for b in blocked:
     if url.startswith(b):

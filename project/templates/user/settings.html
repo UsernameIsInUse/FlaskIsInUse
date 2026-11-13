@@ -84,14 +84,14 @@
               <div class="group">
               {% if current_user.stripe%}
                 {% if current_user.stripe.active %}
-                <a class="button is-primary portal">Manage Subscription</a>
+                <a class="button is-primary stripe-portal">Manage Subscription</a>
                 {% else %}
-                <a class="button is-primary portal">View Invoice History</a>
+                <a class="button is-primary stripe-portal">View Invoice History</a>
                 {% endif %}    
               {% endif %}
               {% if not current_user.stripe or not current_user.stripe.active %}
-              <a class="button is-primary monthly">Get Started - Monthly</a>
-              <a class="button is-primary yearly">Get Started - Yearly</a>
+              <a class="button is-primary stripe-monthly">Get Started - Monthly</a>
+              <a class="button is-primary stripe-yearly">Get Started - Yearly</a>
               {% endif %}
               </div>
             {% else %}

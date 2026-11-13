@@ -27,11 +27,12 @@ def subscription_cancel():
 @bp.route("/subscription/webhook", methods=["POST"])
 @csrf.exempt
 def stripe_webhook():
-  payload = request.data
+  payload = request.get_data(cache=True, as_text=False)
   sig_header = request.headers.get("Stripe-Signature")
+  endpoint_secret = stripe_keys["endpoint_secret"]
   try:
     event = stripe.Webhook.construct_event(
-      payload, sig_header, stripe_keys["endpoint_secret"]
+      payload, sig_header, endpoint_secret
     )
   except ValueError:
     log(user=current_user, request=request, description='Invalid stripe payload')

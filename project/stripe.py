@@ -2,7 +2,7 @@ import stripe
 from dotenv import load_dotenv
 from os import environ
 
-load_dotenv()
+load_dotenv(override=True)
 
 stripe_keys = {
   "secret_key":environ['STRIPE_SECRET_KEY'],
@@ -12,4 +12,4 @@ stripe_keys = {
   "endpoint_secret": environ['STRIPE_ENDPOINT_SECRET']
 }
 
-stripe.api_key = stripe_keys["secret_key"]
+stripe_client = stripe.StripeClient(stripe_keys["secret_key"])

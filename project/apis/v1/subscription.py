@@ -41,29 +41,21 @@ class SubscriptionConfig(MethodView):
       return {'status':200, "publicKey": stripe_keys["publishable_key"]}, 200
     return {'status':401}, 401
   
-@bp.route('/create-checkout-session/monthly')
-class CheckoutSessionMonthly(MethodView):
+@bp.route('/create-checkout-session/<period>')
+class CheckoutSession(MethodView):
   @bp.response(200)
-  def get(self):
+  def get(self, period):
     if current_user.is_authenticated:
       log(user=current_user, request=request, description='Created stripe checkout session')
+      if period == "monthly":
+        price = stripe_keys["monthly_price"]
+      elif period == "yearly":
+        price = stripe_keys["yearly_price"]
+      else:
+        return {'status':400}, 400
       return create_checkout_session([
         {
-          "price": stripe_keys["monthly_price"],
-          "quantity": 1,
-        }
-      ])
-    return {'status':401}, 401
-
-@bp.route('/create-checkout-session/yearly')
-class CheckoutSessionYearly(MethodView):
-  @bp.response(200)
-  def get(self):
-    if current_user.is_authenticated:
-      log(user=current_user, request=request, description='Created stripe checkout session')
-      return create_checkout_session(line_items=[
-        {
-          "price": stripe_keys["yearly_price"],
+          "price": price,
           "quantity": 1,
         }
       ])
