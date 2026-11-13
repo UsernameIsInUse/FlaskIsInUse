@@ -8,10 +8,12 @@ from typing import Optional
 class Log(db.Model):
   __tablename__ = 'logs'
   id: Mapped[int] = mapped_column(primary_key=True)
+  date_created: Mapped[datetime] = mapped_column(default=lambda: datetime.now(timezone.utc))
+  
   user_id: Mapped[Optional[int]] = mapped_column(db.ForeignKey('users.id'))
+  
   data: Mapped[Optional[str]] = mapped_column(db.Text)
   description: Mapped[Optional[str]] = mapped_column(db.Text)
-  date_created: Mapped[datetime] = mapped_column(default=lambda: datetime.now(timezone.utc))
   
   def __repr__(self):
     return f"{self.id}"

@@ -5,7 +5,7 @@ from project.utils import log
 from project.stripe import stripe_client
 
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy import Uuid
+from sqlalchemy import Uuid, String, ForeignKey
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timezone
 from typing import List, Optional
@@ -19,12 +19,12 @@ class User(UserMixin, db.Model):
   __tablename__ = 'users'
   id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid7)
   date_created: Mapped[datetime] = mapped_column(default=lambda: datetime.now(timezone.utc))
-  logs: Mapped[List["Log"]] = db.relationship(backref='user', lazy=True)
-  email: Mapped[str] = mapped_column(db.String(255), unique=True)
+  logs: Mapped[List["Log"]] = db.relationship(backref='user')
+  email: Mapped[str] = mapped_column(String(255), unique=True)
     
   # local auth
-  hashed_pass: Mapped[Optional[str]] = mapped_column(db.String(255))
-  unconfirmed_email: Mapped[Optional[str]] = mapped_column(db.String(255))
+  hashed_pass: Mapped[Optional[str]]
+  unconfirmed_email: Mapped[Optional[str]] = mapped_column(String(255))
   confirmed: Mapped[bool] = mapped_column(default=False)
   date_confirmed: Mapped[Optional[datetime]]
   
@@ -35,13 +35,13 @@ class User(UserMixin, db.Model):
   role_links: Mapped[List["UserRole"]] = db.relationship(back_populates="user")
   profile_links: Mapped[List["UserProfile"]] = db.relationship(back_populates="user")
   
+  # subscription
+  stripe_customers: Mapped[List["StripeCustomer"]] = db.relationship(backref='user', cascade="all, delete-orphan")
+  pro_override: Mapped[bool] = mapped_column(default=False)
+  
   # user data / settings
   tos: Mapped[bool] = mapped_column(default=True)
   marketing: Mapped[Optional[bool]]
-  
-  # subscription
-  stripe_customers: Mapped[List["StripeCustomer"]] = db.relationship(backref='user', lazy=True, cascade="all, delete-orphan")
-  pro_override: Mapped[bool] = mapped_column(default=False)
   
   def __repr__(self):
     return f"{self.email}"
@@ -102,11 +102,12 @@ class OAuthAccount(db.Model):
   __tablename__ = "oauth_accounts"
   id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid7)
   date_created: Mapped[datetime] = mapped_column(default=lambda: datetime.now(timezone.utc))
-  user_id: Mapped[int] = mapped_column(db.ForeignKey("users.id"))
+  
+  user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
   user: Mapped["User"] = db.relationship(back_populates="oauth_accounts")
   
-  provider: Mapped[str] = mapped_column(db.String(50), nullable=False)
-  provider_user_id: Mapped[str] = mapped_column(db.String(255), nullable=False)
+  provider: Mapped[str]
+  provider_user_id: Mapped[str]
   
   __table_args__ = (
     db.UniqueConstraint("provider", "provider_user_id"),
@@ -114,14 +115,15 @@ class OAuthAccount(db.Model):
   
   def __repr__(self):
     return f"{self.user.email}"
-  
 
 class Role(db.Model):
   __tablename__ = 'roles'
   id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid7)
-  name: Mapped[str] = mapped_column(db.String(255), unique=True)
   date_created: Mapped[datetime] = mapped_column(default=lambda: datetime.now(timezone.utc))
+  
   user_links: Mapped[List["UserRole"]] = db.relationship(back_populates="role", cascade="all, delete-orphan")
+  
+  name: Mapped[str] = mapped_column(unique=True)
   
   def __repr__(self):
     return f"{self.name}"
@@ -133,11 +135,14 @@ class Role(db.Model):
 class StripeCustomer(db.Model):
   __tablename__ = "stripe_customers"
   id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid7)
-  user_id: Mapped[int] = mapped_column(db.ForeignKey('users.id'))
-  stripe_customer_id: Mapped[str] = mapped_column(db.String(255))
-  stripe_subscription_id: Mapped[str] = mapped_column(db.String(255))
-  active: Mapped[bool] = mapped_column(default=False)
   date_created: Mapped[datetime] = mapped_column(default=lambda: datetime.now(timezone.utc))
+  
+  user_id: Mapped[int] = mapped_column(ForeignKey('users.id'))
+  
+  stripe_customer_id: Mapped[str] = mapped_column(String(255))
+  stripe_subscription_id: Mapped[str] = mapped_column(String(255))
+  active: Mapped[bool] = mapped_column(default=False)
+  
   
   def __repr__(self):
     return f"{self.id}"
