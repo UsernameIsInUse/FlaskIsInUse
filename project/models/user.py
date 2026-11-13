@@ -19,8 +19,9 @@ class User(UserMixin, db.Model):
   __tablename__ = 'users'
   id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid7)
   date_created: Mapped[datetime] = mapped_column(default=lambda: datetime.now(timezone.utc))
-  logs: Mapped[List["Log"]] = db.relationship(backref='user')
-  email: Mapped[str] = mapped_column(String(255), unique=True)
+  
+  # logs
+  logs: Mapped[List["Log"]] = db.relationship(back_populates='user')
     
   # local auth
   hashed_pass: Mapped[Optional[str]]
@@ -36,10 +37,11 @@ class User(UserMixin, db.Model):
   profile_links: Mapped[List["UserProfile"]] = db.relationship(back_populates="user")
   
   # subscription
-  stripe: Mapped[Optional["StripeCustomer"]] = db.relationship(backref='user', lazy=True, cascade="all, delete-orphan", single_parent=True)
+  stripe: Mapped[Optional["StripeCustomer"]] = db.relationship(back_populates='user', lazy=True, cascade="all, delete-orphan", single_parent=True)
   pro_override: Mapped[bool] = mapped_column(default=False)
   
-  # user data / settings
+  # user data
+  email: Mapped[str] = mapped_column(String(255), unique=True)
   tos: Mapped[bool] = mapped_column(default=True)
   marketing: Mapped[Optional[bool]]
   
