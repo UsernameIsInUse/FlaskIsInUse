@@ -36,7 +36,7 @@ class User(UserMixin, db.Model):
   profile_links: Mapped[List["UserProfile"]] = db.relationship(back_populates="user")
   
   # subscription
-  stripe_customers: Mapped[List["StripeCustomer"]] = db.relationship(backref='user', cascade="all, delete-orphan")
+  stripe: Mapped[Optional["StripeCustomer"]] = db.relationship(backref='user', lazy=True, cascade="all, delete-orphan", single_parent=True)
   pro_override: Mapped[bool] = mapped_column(default=False)
   
   # user data / settings
@@ -68,13 +68,6 @@ class User(UserMixin, db.Model):
   @property
   def hex(self):
     return self.email.encode("utf-8").hex()
-  
-  @property
-  def stripe(self):
-    try:
-      return self.stripe_customers[0]
-    except:
-      return False
   
   @property
   def is_pro(self) -> bool:
@@ -137,20 +130,20 @@ class StripeCustomer(db.Model):
   id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid7)
   date_created: Mapped[datetime] = mapped_column(default=lambda: datetime.now(timezone.utc))
   
-  user_id: Mapped[int] = mapped_column(ForeignKey('users.id'))
+  user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey('users.id'))
+  user: Mapped["User"] = db.relationship(back_populates="stripe")
   
   stripe_customer_id: Mapped[str] = mapped_column(String(255))
   stripe_subscription_id: Mapped[str] = mapped_column(String(255))
   active: Mapped[bool] = mapped_column(default=False)
   
-  
-  def __repr__(self):
+  def __repr__(self) -> str:
     return f"{self.id}"
 
   @property
   def get_subscription(self):
     try:
-      return stripe_client.v1.subscriptions.retrieve(self.stripe_subscription_id)
+      return stripe_client.v1.customers.retrieve(self.stripe_customer_id)
     except:
       return False
 
@@ -159,7 +152,7 @@ class StripeCustomer(db.Model):
     try:
       return stripe_client.v1.customers.retrieve(self.stripe_customer_id)
     except:
-      return False
+        return False
 
   @property
   def get_product(self):
