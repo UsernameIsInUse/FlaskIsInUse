@@ -1,7 +1,7 @@
 from flask import Flask
 
 from config import Config
-from project.extensions import flashy, ipban, csrf, db, migrate, admin, login, squeeze, mail, api, oauth
+from project.extensions import flashy, ipban, csrf, db, migrate, flask_admin, login, squeeze, mail, api, oauth
 import flask_noai
 from flask_cors import CORS
 
@@ -16,7 +16,6 @@ def create_app(config_class=Config):
   csrf.init_app(app)
   db.init_app(app)
   migrate.init_app(app, db)
-  admin.init_app(app)
   login.init_app(app)
   flashy.init_app(app)
   mail.init_app(app)
@@ -26,6 +25,8 @@ def create_app(config_class=Config):
     r"/settings": {"origins": "https://checkout.stripe.com"}
   })
   oauth.init_app(app)
+  from project.admin import MyAdminIndexView
+  flask_admin.init_app(app, index_view=MyAdminIndexView())
   
   # Additional configurations
   ipban.load_nuisances()

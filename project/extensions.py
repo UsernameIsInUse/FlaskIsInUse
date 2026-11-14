@@ -14,7 +14,7 @@ from flask_wtf import CSRFProtect
 csrf = CSRFProtect()
 
 from flask_admin import Admin
-admin = Admin(name="Admin", url="/admin/")
+flask_admin = Admin(name="Admin", url="/admin/")
 
 from flask_ipban import IpBan
 ipban = IpBan()

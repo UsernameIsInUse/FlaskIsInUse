@@ -4,7 +4,7 @@ from flask_admin.menu import MenuLink
 from flask_admin import AdminIndexView
 from flask_login import current_user
 
-from project import admin, db
+from project import flask_admin, db
 from project.models import *
 from project.access_control import login_redirect, is_admin
 
@@ -12,19 +12,15 @@ import uuid
 
 bp = Blueprint('admin_app', __name__)
 
-admin.add_link(MenuLink(name="Home", url='/'))
-
 class MyAdminIndexView(AdminIndexView):
   def is_visible(self):
     return False
   def is_accessible(self):
-    return current_user.is_authenticated and is_admin()
+    return is_admin()
   def inaccessible_callback(self, name, **kwargs):
     if current_user.is_authenticated:
       return abort(403)
     return login_redirect()
-
-admin.index_view = MyAdminIndexView
 
 class CustomBaseModelView(ModelView):
   page_size = 50
@@ -39,7 +35,7 @@ class CustomBaseModelView(ModelView):
       id = uuid.UUID(id)
     return self.session.get(self.model, id)
   def is_accessible(self):
-    return current_user.is_authenticated and is_admin()
+    return is_admin()
   def inaccessible_callback(self, name, **kwargs):
     if current_user.is_authenticated:
       return abort(403)
@@ -61,9 +57,7 @@ class RoleView(CustomBaseModelView):
   column_searchable_list = ['name']
   
 class StripeView(CustomBaseModelView):
-  column_list = ['user','stripe_customer_id','stripe_subscription_id','active']
-  column_filters = ['active']
-  form_columns = ['active']
+  column_list = ['user','stripe_customer_id','stripe_subscription_id']
   can_delete = False
   
 class LogView(CustomBaseModelView):
@@ -81,10 +75,10 @@ class EmailView(CustomBaseModelView):
   can_edit = False
   can_delete = False
 
-admin.add_view(UserView(User, db.session, category="Users"))
-admin.add_view(OAuthView(OAuthAccount, db.session, category="Users"))
-admin.add_view(ProfileView(Profile, db.session, category="Users"))
-admin.add_view(RoleView(Role, db.session, category="Users"))
-admin.add_view(StripeView(StripeCustomer, db.session, category="Users"))
-admin.add_view(LogView(Log, db.session, category="Utils"))
-admin.add_view(EmailView(User, db.session, category="Utils", endpoint="user_emails", name="Emails"))
+flask_admin.add_view(UserView(User, db.session, category="Users"))
+flask_admin.add_view(OAuthView(OAuthAccount, db.session, category="Users"))
+flask_admin.add_view(ProfileView(Profile, db.session, category="Users"))
+flask_admin.add_view(RoleView(Role, db.session, category="Users"))
+flask_admin.add_view(StripeView(StripeCustomer, db.session, category="Users"))
+flask_admin.add_view(LogView(Log, db.session, category="Utils"))
+flask_admin.add_view(EmailView(User, db.session, category="Utils", endpoint="user_emails", name="Emails"))
