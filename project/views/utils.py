@@ -63,4 +63,4 @@ def filter_order(seq:List) -> List:
 
 @bp.route('/favicon.ico')
 def favicon():
-  return send_from_directory(bp.static_folder, 'img/favicon.png')
+    return send_from_directory(bp.static_folder, 'img/favicon.svg')

@@ -82,3 +82,5 @@ flask_admin.add_view(RoleView(Role, db.session, category="Users"))
 flask_admin.add_view(StripeView(StripeCustomer, db.session, category="Users"))
 flask_admin.add_view(LogView(Log, db.session, category="Utils"))
 flask_admin.add_view(EmailView(User, db.session, category="Utils", endpoint="user_emails", name="Emails"))
+
+flask_admin.add_link(MenuLink(name="Home", url='/'))
